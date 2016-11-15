@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha",
     "build": "webpack",
-    "publish": "webpack && mocha"
+    "dist": "webpack && mocha"
   },
   "repository": {
     "type": "git",
