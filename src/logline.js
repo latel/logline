@@ -69,24 +69,19 @@ class Logline {
     static keep(daysToMaintain) {
         try {
             Logline._checkProtocol();
-            Logline._protocol.clean(daysToMaintain);
+            Logline._protocol.keep(daysToMaintain);
         } catch (e) {
             util.displayError('unable to clean log database.');
         }
         return this;
     }
 
-    // 清空日志
-    static clean() {
-        return Logline.keep(0);
-    }
-
     // 清空日志并删除数据库
-    static drop() {
+    static clean() {
         try {
             Logline._checkProtocol();
-            Logline._protocol.drop();
-        } catch (e) { util.displayError('unable to drop log database.'); }
+            Logline._protocol.clean();
+        } catch (e) { util.displayError('unable to clean log database.'); }
         return this;
     }
 

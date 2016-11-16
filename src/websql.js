@@ -106,7 +106,7 @@ export default class WebsqlLogger extends Interface {
         } catch (e) { util.displayError('unable to clean logs from database.'); }
     }
 
-    static drop() {
+    static clean() {
         try {
             WebsqlLogger._db.transaction(function(tx) {
                 tx.executeSql(
@@ -116,6 +116,6 @@ export default class WebsqlLogger extends Interface {
                     function(e) {throw e;}
                 );
             });
-        } catch (e) { util.displayError('unable to remove log database.'); }
+        } catch (e) { util.displayError('unable to clean log database.'); }
     }
 }

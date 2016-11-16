@@ -7,7 +7,7 @@ export default class localStorageLogger extends Interface {
     }
 
     _record(level, descriptor, data) {
-        var logs = window.localStorage.getItem('logcat') ? JSON.parse(window.localStorage.getItem('logcat')) : [];
+        var logs = window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : [];
         logs.push({
             time: Date.now(),
             namespace: this._namesapce,
@@ -16,29 +16,29 @@ export default class localStorageLogger extends Interface {
             data: data
         });
         try {
-            window.localStorage.setItem('logcat', JSON.stringify(logs));
+            window.localStorage.setItem('logline', JSON.stringify(logs));
         } catch (e) { util.displayError('error inserting record'); }
     }
 
     static init() {
-        if (!window.localStorage.getItem('logcat')) {
-            window.localStorage.setItem('logcat', JSON.stringify([]));
+        if (!window.localStorage.getItem('logline')) {
+            window.localStorage.setItem('logline', JSON.stringify([]));
         }
     }
 
     static all(readyFn) {
-        readyFn(JSON.parse(window.localStorage.getItem('logcat')));
+        readyFn(JSON.parse(window.localStorage.getItem('logline')));
     }
 
     static keep(daysToMaintain) {
-        var logs = !daysToMaintain ? [] : (window.localStorage.getItem('logcat') ? JSON.parse(window.localStorage.getItem('logcat')) : []).filter(function(log) {
+        var logs = !daysToMaintain ? [] : (window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : []).filter(function(log) {
             return log.time >= (Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000);
         });
-        window.localStorage.setItem('logcat', JSON.stringify(logs));
+        window.localStorage.setItem('logline', JSON.stringify(logs));
     }
 
-    static drop() {
-        window.localStorage.removeItem('logcat');
+    static clean() {
+        window.localStorage.removeItem('logline');
     }
 
 }
