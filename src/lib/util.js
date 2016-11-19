@@ -1,5 +1,3 @@
-export function displayError(errMsg) {
-    if (window.console && window.console.error) {
-        window.console.error('logline: ' + errMsg);
-    }
+export function throwError(errMessage) {
+    throw new Error('Logline: ' + errMessage);
 }

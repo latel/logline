@@ -17,10 +17,10 @@ export default class WebsqlLogger extends Interface {
                             'INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)',
                             [Date.now(), self._namesapce, level, descriptor, (data === undefined || data === '') ? '' : (JSON.stringify(data) || '')],
                             function() {/* empty func */},
-                            function(e) {throw e;}
+                            function(tx, e) {throw e;}
                         );
                     });
-                } catch (e) { util.displayError('error inserting record'); }
+                } catch (e) { util.throwError('error inserting record'); }
             }
             else {
                 setTimeout(function() {
@@ -45,7 +45,7 @@ export default class WebsqlLogger extends Interface {
 
     static init() {
         if (!('openDatabase' in window)) {
-            util.displayError('your platform does not support websql.');
+            util.throwError(new Error('your platform does not support websql.'));
         }
         try {
             WebsqlLogger._db = window.openDatabase('logline', '1.0', 'cats loves logs', 4.85 * 1024 * 1024);
@@ -61,7 +61,7 @@ export default class WebsqlLogger extends Interface {
                     }
                 );
             });
-        } catch (e) { util.displayError('unable to init log database.'); }
+        } catch (e) { util.throwError('unable to init log database.'); }
     }
 
     static all(readyFn) {
@@ -77,10 +77,10 @@ export default class WebsqlLogger extends Interface {
                         }
                         readyFn(logs);
                     },
-                    function(e) {throw e;}
+                    function(tx, e) {throw e;}
                 );
             });
-        } catch (e) { util.displayError('unable to collect logs from database.'); }
+        } catch (e) { util.throwError('unable to collect logs from database.'); }
     }
 
     static keep(daysToMaintain) {
@@ -91,7 +91,7 @@ export default class WebsqlLogger extends Interface {
                         'DELETE FROM logs WHERE time < ?',
                         [Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000],
                         function() {/* empty func */},
-                        function(e) {throw e;}
+                        function(tx, e) {throw e;}
                     );
                 }
                 else {
@@ -99,11 +99,11 @@ export default class WebsqlLogger extends Interface {
                         'DELETE FROM logs',
                         [],
                         function() {/* empty func */},
-                        function(e) {throw e;}
+                        function(tx, e) {throw e;}
                     );
                 }
             });
-        } catch (e) { util.displayError('unable to clean logs from database.'); }
+        } catch (e) { util.throwError('unable to clean logs from database.'); }
     }
 
     static clean() {
@@ -113,9 +113,9 @@ export default class WebsqlLogger extends Interface {
                     'DROP TABLE logs',
                     [],
                     function() {/* empty func */},
-                    function(e) {throw e;}
+                    function(tx, e) {throw e;}
                 );
             });
-        } catch (e) { util.displayError('unable to clean log database.'); }
+        } catch (e) { util.throwError('unable to clean log database.'); }
     }
 }

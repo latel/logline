@@ -7,7 +7,7 @@ export default class Interface {
 
     // 添加一条日志记录
     _record(level, descriptor, data) {
-        util.displayError('_record is not implemented.');
+        util.throwError('method _record is not implemented.');
     }
 
     // 添加一条等级为info的日志记录

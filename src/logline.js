@@ -16,7 +16,7 @@ class Logline {
     // 检查协议
     static _checkProtocol() {
         if (!Logline._protocol) {
-            util.displayError('you must choose a protocol with "using" method.');
+            util.throwError('you must choose a protocol with "using" method.');
         }
     }
 
@@ -61,7 +61,7 @@ class Logline {
             });
         }
         else {
-            util.displayError('report address is not configed.');
+            util.throwError('report address is not configed.');
         }
     }
 
@@ -71,7 +71,7 @@ class Logline {
             Logline._checkProtocol();
             Logline._protocol.keep(daysToMaintain);
         } catch (e) {
-            util.displayError('unable to clean log database.');
+            util.throwError('unable to clean log database.');
         }
         return this;
     }
@@ -81,7 +81,7 @@ class Logline {
         try {
             Logline._checkProtocol();
             Logline._protocol.clean();
-        } catch (e) { util.displayError('unable to clean log database.'); }
+        } catch (e) { util.throwError('unable to clean log database.'); }
         return this;
     }
 

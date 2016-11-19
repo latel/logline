@@ -17,7 +17,7 @@ export default class localStorageLogger extends Interface {
         });
         try {
             window.localStorage.setItem('logline', JSON.stringify(logs));
-        } catch (e) { util.displayError('error inserting record'); }
+        } catch (e) { util.throwError('error inserting record'); }
     }
 
     static init() {
