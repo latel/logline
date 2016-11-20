@@ -1,5 +1,6 @@
 import LocalStorageLogger from './localstorage';
 import WebsqlLogger from './Websql';
+import IndexedDBLogger from './indexeddb';
 import * as util from './lib/util';
 
 let LogcatInterface = function(namespace) {
@@ -71,7 +72,7 @@ class Logline {
             Logline._checkProtocol();
             Logline._protocol.keep(daysToMaintain);
         } catch (e) {
-            util.throwError('unable to clean log database.');
+            util.throwError('unable to remove logs earlier than ' + daysToMaintain + 'd.');
         }
         return this;
     }
@@ -92,17 +93,22 @@ class Logline {
             return this;
         }
 
-        switch (protocol) {
-        case 'localstorage':
-            Logline._protocol = LocalStorageLogger;
-            break;
-        case 'websql':
-        default:
-            Logline._protocol = WebsqlLogger;
-            break;
+        if (-1 < Object.values(Logline.PROTOCOL).indexOf(protocol)) {
+            Logline._protocol = protocol;
+            Logline.init();
+        }
+        else {
+            util.throwError('specialfied protocol is not available.');
         }
 
+        return this;
+    }
+
+    // 初始化选定的协议
+    static init() {
+        Logline._checkProtocol();
         Logline._protocol.init();
+
         return this;
     }
 
@@ -115,5 +121,11 @@ class Logline {
 
 Logline._protocol = null;
 Logline._reportTo = null;
+
+Logline.PROTOCOL = {
+    WEBSQL: WebsqlLogger,
+    LOCALSTORAGE: LocalStorageLogger,
+    INDEXEDDB: IndexedDBLogger
+};
 
 module.exports = Logline;
