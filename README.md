@@ -3,62 +3,84 @@ Logline
 
 [![Build Status][travis-image]][travis-url]
 
-logline是一个轻量，实用和用户级的前端客户端日志记录工具。
+logline是一个轻量，实用和客户端级的前端客户端日志记录工具。
 
 
 为何前端定位问题很困难
 -----------------
-前端同学对此肯定深有体会，代码发出去之后，犹如脱缰的野马，运行在万千的客户终端上，等到产品和后台反馈问题到我们这边，很多时候定位问题只能靠猜，尤其是一些偶发诱因，因为根本不知道用户是如何操作的、随机因素的生成结果，因此很难回放用户的操作来还原现场找到原因。这个时候，我们想，如果有一个像后台一样详实的可分类和检索的运行日志，无疑将会提供巨大的帮助。
+前端同学对此肯定深有体会，代码发出去之后，犹如脱缰的野马，运行在万千的客户终端上，等到产品和后台反馈问题到我们这边，很多时候定位问题只能靠猜，尤其是一些偶发诱因，因为根本不知道用户是如何操作的，真实环境遇到的问题通常是很多随机因素叠加的形成的，因此很难回放用户的操作来还原现场找到原因。这个时候，我们想，如果有一个像后台一样详实的可分类和检索的运行日志，无疑将会提供巨大的帮助。
+
+应用场景
+------
+
++ 核心流程监控
+
+    在产品的一些核心流程中，我们可以在用户出错的情况下主动上传用户日志，以便我们可以快速统计和定位用户遇到的问题。
+
++ 主动抓取用户的日志分析用户行为
+
+    有时候在用户不配合开发人员的时候，我们可以设计一种策略，比如我们在线上发布一个json文件，里面配置一个希望主动抓取日志的用户列表，当我们的产品在用户手机上被打开后，延时下载（避免影响主流程性能）这个json，当匹配当前用户时，直接主动上报该用户的日志。
+
++ 统计和辅助分析JS错误
+
+    我们可以记录js的报错，包含调用队列一起记录，直接上传此错误日志或者在累计达到一个阈值的时候统一上传。
 
 特性支持
 ------
 
 + 基本的日志记录功能
-+ 命名空间
-+ websql/localStorage两种存储方案
-+ 日志等级分类
-+ 日志清理
-+ 日志上传
++ 命名空间支持多个模块同时写日志
++ 支持websql/localStorage/indexedDB三种web客户端持久化存储方案
++ 日志等级
++ 日志清理（防止日志过多，占用上传带宽和占满用户允许的内存）
++ 日志上传（需后端提供接口支持接收）
 + 无外部依赖
 + 用户级，针对单个用户的分析
 
 快速上手
 ------
 
-##### 引入脚本
+### 1. 引入脚本，并选择期望使用的协议
+
+目前一共支持三个协议， 三个协议都被直接挂载在Logline对象上以便一些特殊的应用场景，也更好的符合语义化:
+
++ websql: Logline.PROTOCOL.WEBSQL
++ indexeddb: Logline.PROTOCOL.INDEXEDDB
++ localstorage: Logline.PROTOCOL.LOCALSTORAGE
 
 ``` javascript
 // AMD/CMD
 // 使用websql协议
-var Logcat = require('./mod/logcat').using('websql');
+var Logline = require('./mod/logline.min');
+Logline.using(Logline.PROTOCOL.WEBSQL);
 
 // Script Tag
-<script src="./mod/logcat.js"></script>
+<script src="./mod/logline.min.js"></script>
 <script>
-	// 使用localStorage协议
-	Logcat.using('localstorage');
+	// 使用indexedDB协议
+	Logline.using(Logline.PROTOCOL.INDEXEDDB);
 </script>
 ```
 
-##### 配置上传地址
+### 2. 配置上传地址
 
 ``` javascript
-Logcat.reportTo('https://hostname.com/cgi-bin/weblog.cgi');
+Logline.reportTo('https://hostname.com/cgi-bin/weblog.cgi');
 ```
 
-##### 清理日志
+### 3. 清理日志
 
 ``` javascript
-Logcat.keep(.5); // 保留半天以内的日志，如果不传参则清空日志
-Logcat.clean(); // 清空日志并删除数据库
+Logline.keep(.5); // 保留半天以内的日志，如果不传参则清空日志
+Logline.clean(); // 清空日志并删除数据库
 ```
 
-##### 记录日志
+### 4. 记录日志
 
 ``` javascript
 // 不同的模块使用不同的日志会话
-var spaLog = Logcat('spa'),
-	sdkLog = Logcat('sdk');
+var spaLog = new Logline('spa'),
+	sdkLog = new Logline('sdk');
 
 // 不包含数据的，描述为 init.succeed 的记录
 spaLog.info('init.succeed');
@@ -78,10 +100,10 @@ sdkLog.critical('system.vanish', {
 });
 ```
 
-##### 上传日志
+### 5. 上传日志
 
 ``` javascript
-Logcat.deploy(
+Logline.deploy(
 	'upload reason description for this time',
 	function ticker(percentage) {
 		console.log('已上传' + percentage + '%');
@@ -98,16 +120,13 @@ Logcat.deploy(
 
 日志分析 [logline-viewer]()
 -------------------------
-由于Logline上传的日志格式符合Unix标准，因此具有良好的可阅读性，因此我们可以在某种程度上直接使用Unix的工具或者编辑器来阅读。但是对类Unix系统不熟悉的用户使用可能仍然有困难，因此有必要使用Web技术栈搭建一个易于使用并且视觉良好的工具。我们希望这套工具可以不依赖与后端，既可以部署在服务器端，也可以当做本地网页直接双击打开，也可以被简单的包一层外壳而当做桌面APP来使用。作为日志，承载的最主要的内容便是大量的纯文本，在调研了一些方案后，我们认为H5规范中的FileReader.readAsText可以很好的做到这一点，结合拖放事件，我们便可以很大致构建出一个不错的方案：用户将一个或者多个日志文件拖放至网页中，即可对这些日志批量分析和检索。
+由于Logline上传的日志格式符合标准，具有良好的可阅读性，因此我们可以在某种程度上直接使用命令行工具或者编辑器来阅读。但是对命令行不熟悉的用户使用可能仍然有困难，因此有必要使用Web技术栈搭建一个易于使用并且视觉良好的工具。我们希望这套工具可以不依赖与后端，既可以部署在服务器端，也可以当做本地网页直接双击打开，也可以被简单的包一层外壳而当做桌面APP来使用。
+
+作为日志，承载的最主要的内容便是大量的纯文本，在调研了一些方案后，我们认为H5规范中的FileReader.readAsText可以很好的做到这一点，结合拖放事件，我们便可以很大致构建出一个不错的方案：用户将一个或者多个日志文件拖放至网页中，即可对这些日志合并分析和检索。
 
 
-TODO
------
-
-+ 如果服务器单次上传有大小限制，切割分段上传
-
-Who is Using Logline
-------------------
+他们都在用
+---------
 ![腾讯微证券](https://wzq.tenpay.com/weixin/v1/pic/logo/72x72-red.png)
 
 
