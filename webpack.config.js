@@ -2,7 +2,7 @@ var pkg = require('./package.json');
 var webpack = require('webpack');
 
 module.exports = {
-    devtool: false,
+    devtool: 'source-map',
     entry: {
         logline: './src/logline.js'
     },
@@ -11,7 +11,8 @@ module.exports = {
         filename: '[name].min.js',
         library: 'Logline',
         libraryTarget: 'umd',
-        umdNameDefine: true
+        umdNameDefine: true,
+        sourceMapFilename: '[name].map'
     },
     module: {
         loaders: [

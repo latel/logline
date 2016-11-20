@@ -156,8 +156,9 @@ describe('LocalStorageLogger', function() {
             window.localStorage = new StorageShim();
 
             window.Logline.using('localstorage');
+            window.Logline.keep(0);
             let testLogger = new window.Logline('test');
-            let randomVars = window.Math.random().toString(36).slice(2,6);
+            let randomVars = window.Math.random().toString(36).slice(2, 6);
             testLogger.info('info', randomVars[0]);
             testLogger.info('warn', randomVars[1]);
             testLogger.info('error', randomVars[2]);

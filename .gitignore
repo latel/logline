@@ -1,3 +1,12 @@
+# node
 node_modules
+npm-debug.log
+
+# bower
 bower_components
+
+# editors
 .vscode.DS_Store
+
+# system
+.DS_Store

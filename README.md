@@ -39,39 +39,39 @@ var Logcat = require('./mod/logcat').using('websql');
 	Logcat.using('localstorage');
 </script>
 ```
-	
+
 ##### 配置上传地址
 
 ``` javascript
 Logcat.reportTo('https://hostname.com/cgi-bin/weblog.cgi');
 ```
-	
+
 ##### 清理日志
 
 ``` javascript
 Logcat.keep(.5); // 保留半天以内的日志，如果不传参则清空日志
 Logcat.clean(); // 清空日志并删除数据库
 ```
-	
+
 ##### 记录日志
 
 ``` javascript
 // 不同的模块使用不同的日志会话
 var spaLog = Logcat('spa'),
 	sdkLog = Logcat('sdk');
-	
+
 // 不包含数据的，描述为 init.succeed 的记录
 spaLog.info('init.succeed');
-	
+
 // 包含错误描述数据，描述为 init.failed 的记录
 spaLog.error('init.failed', {
 	retcode: 'EINIT',
 	retmsg: 'invalid signature'
 });
-	
+
 // 不包含数据的，描述为 outdated 的记录
 sdkLog.warning('outdated');
-	
+
 // 包含错误描述数据，描述为 system.vanish 的记录
 sdkLog.critical('system.vanish', {
     // debug infos here
@@ -105,6 +105,10 @@ TODO
 -----
 
 + 如果服务器单次上传有大小限制，切割分段上传
+
+Who is Using Logline
+------------------
+![腾讯微证券](https://wzq.tenpay.com/weixin/v1/pic/logo/72x72-red.png)
 
 
 
