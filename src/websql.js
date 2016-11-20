@@ -1,7 +1,7 @@
-import Interface from './interface';
+import LoggerInterface from './interface';
 import * as util from './lib/util';
 
-export default class WebsqlLogger extends Interface {
+export default class WebsqlLogger extends LoggerInterface {
     constructor(...args) {
         super(...args);
     }
@@ -45,7 +45,7 @@ export default class WebsqlLogger extends Interface {
 
     static init() {
         if (!('openDatabase' in window)) {
-            util.throwError(new Error('your platform does not support websql.'));
+            util.throwError(new Error('your platform does not support websql protocol.'));
         }
         try {
             WebsqlLogger._db = window.openDatabase('logline', '1.0', 'cats loves logs', 4.85 * 1024 * 1024);

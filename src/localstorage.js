@@ -1,7 +1,7 @@
-import Interface from './interface';
+import LoggerInterface from './interface';
 import * as util from './lib/util';
 
-export default class localStorageLogger extends Interface {
+export default class localStorageLogger extends LoggerInterface {
     constructor(...args) {
         super(...args);
     }
@@ -21,6 +21,9 @@ export default class localStorageLogger extends Interface {
     }
 
     static init() {
+        if (!('localStorage' in window)) {
+            util.throwError('your platform does not support localstorage protocol.');
+        }
         if (!window.localStorage.getItem('logline')) {
             window.localStorage.setItem('logline', JSON.stringify([]));
         }
@@ -40,5 +43,4 @@ export default class localStorageLogger extends Interface {
     static clean() {
         window.localStorage.removeItem('logline');
     }
-
 }
