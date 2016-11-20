@@ -1,5 +1,5 @@
 import LocalStorageLogger from './localstorage';
-import WebsqlLogger from './Websql';
+import WebsqlLogger from './websql';
 import IndexedDBLogger from './indexeddb';
 import * as util from './lib/util';
 
