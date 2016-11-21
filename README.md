@@ -127,7 +127,7 @@ Logline.deploy(
 
 他们都在用
 ---------
-![腾讯微证券](https://wzq.tenpay.com/weixin/v1/pic/logo/72x72-red.png)
+![腾讯微证券](https://wzq.tenpay.com/weixin/v1/pic/logo/common.png?v=201611211243)
 
 
 
