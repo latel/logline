@@ -1,6 +1,6 @@
-import WebsqlLogger from './websql';
-import LocalStorageLogger from './localStorage';
-import IndexedDBLogger from './indexedDB';
+{{#each protocols}}
+import {{upper this false}}Logger from './{{this}}';
+{{/each}}
 import * as util from './lib/util';
 
 
@@ -46,7 +46,7 @@ class Logline {
                 xhr.onerror = function() {
                     'function' === typeof errorFn && errorFn();
                 };
-                xhr.open('POST', Logline._reportTo);
+                xhr.open('POST', LogcatInterface._reportTo);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
                 // 处理logs成常见的日志形式来上报(一行一条日志内容)，避免重复键名占用空间
@@ -124,9 +124,13 @@ class Logline {
 }
 
 Logline.PROTOCOL = {
-    WEBSQL: WebsqlLogger,
-    LOCALSTORAGE: LocalStorageLogger,
-    INDEXEDDB: IndexedDBLogger
+{{#each protocols}}
+    {{#compare ../protocols.length @index}}
+    {{upper this true}}: {{upper this false}}Logger,
+    {{else}}
+    {{upper this true}}: {{upper this false}}Logger
+    {{/compare}}
+{{/each}}
 };
 
 module.exports = Logline;

@@ -63,17 +63,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _localstorage = __webpack_require__(1);
-
-	var _localstorage2 = _interopRequireDefault(_localstorage);
-
-	var _websql = __webpack_require__(4);
+	var _websql = __webpack_require__(1);
 
 	var _websql2 = _interopRequireDefault(_websql);
 
-	var _indexeddb = __webpack_require__(5);
+	var _localStorage = __webpack_require__(4);
 
-	var _indexeddb2 = _interopRequireDefault(_indexeddb);
+	var _localStorage2 = _interopRequireDefault(_localStorage);
+
+	var _indexedDB = __webpack_require__(5);
+
+	var _indexedDB2 = _interopRequireDefault(_indexedDB);
 
 	var _util = __webpack_require__(3);
 
@@ -84,11 +84,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var LogcatInterface = function LogcatInterface(namespace) {
-	    LogcatInterface._checkProtocol();
-	    return new LogcatInterface._protocol(namespace);
-	};
 
 	var Logline = function () {
 	    function Logline(namespace) {
@@ -107,6 +102,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (!Logline._protocol) {
 	                util.throwError('you must choose a protocol with "using" method.');
 	            }
+	        }
+
+	        // 获取所有日志
+
+	    }, {
+	        key: 'getAll',
+	        value: function getAll(readyFn) {
+	            Logline._checkProtocol();
+	            Logline._protocol.all(function (logs) {
+	                readyFn(logs);
+	            });
 	        }
 
 	        // 发送日志
@@ -134,7 +140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    xhr.onerror = function () {
 	                        'function' === typeof errorFn && errorFn();
 	                    };
-	                    xhr.open('POST', LogcatInterface._reportTo);
+	                    xhr.open('POST', Logline._reportTo);
 	                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
 	                    // 处理logs成常见的日志形式来上报(一行一条日志内容)，避免重复键名占用空间
@@ -229,204 +235,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return Logline;
 	}();
 
-	Logline._protocol = null;
-	Logline._reportTo = null;
-
 	Logline.PROTOCOL = {
 	    WEBSQL: _websql2.default,
-	    LOCALSTORAGE: _localstorage2.default,
-	    INDEXEDDB: _indexeddb2.default
+	    LOCALSTORAGE: _localStorage2.default,
+	    INDEXEDDB: _indexedDB2.default
 	};
 
 	module.exports = Logline;
 
 /***/ },
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _interface = __webpack_require__(2);
-
-	var _interface2 = _interopRequireDefault(_interface);
-
-	var _util = __webpack_require__(3);
-
-	var util = _interopRequireWildcard(_util);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var localStorageLogger = function (_LoggerInterface) {
-	    _inherits(localStorageLogger, _LoggerInterface);
-
-	    function localStorageLogger() {
-	        var _ref;
-
-	        _classCallCheck(this, localStorageLogger);
-
-	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	            args[_key] = arguments[_key];
-	        }
-
-	        return _possibleConstructorReturn(this, (_ref = localStorageLogger.__proto__ || Object.getPrototypeOf(localStorageLogger)).call.apply(_ref, [this].concat(args)));
-	    }
-
-	    _createClass(localStorageLogger, [{
-	        key: '_record',
-	        value: function _record(level, descriptor, data) {
-	            var logs = window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : [];
-	            logs.push({
-	                time: Date.now(),
-	                namespace: this._namesapce,
-	                level: level,
-	                descriptor: descriptor,
-	                data: data
-	            });
-	            try {
-	                window.localStorage.setItem('logline', JSON.stringify(logs));
-	            } catch (e) {
-	                util.throwError('error inserting record');
-	            }
-	        }
-	    }], [{
-	        key: 'init',
-	        value: function init() {
-	            if (!('localStorage' in window)) {
-	                util.throwError('your platform does not support localstorage protocol.');
-	            }
-	            if (!window.localStorage.getItem('logline')) {
-	                window.localStorage.setItem('logline', JSON.stringify([]));
-	            }
-	        }
-	    }, {
-	        key: 'all',
-	        value: function all(readyFn) {
-	            readyFn(JSON.parse(window.localStorage.getItem('logline')));
-	        }
-	    }, {
-	        key: 'keep',
-	        value: function keep(daysToMaintain) {
-	            var logs = !daysToMaintain ? [] : (window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : []).filter(function (log) {
-	                return log.time >= Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
-	            });
-	            window.localStorage.setItem('logline', JSON.stringify(logs));
-	        }
-	    }, {
-	        key: 'clean',
-	        value: function clean() {
-	            window.localStorage.removeItem('logline');
-	        }
-	    }]);
-
-	    return localStorageLogger;
-	}(_interface2.default);
-
-	exports.default = localStorageLogger;
-
-/***/ },
-/* 2 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _util = __webpack_require__(3);
-
-	var util = _interopRequireWildcard(_util);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var Interface = function () {
-	    function Interface(namespace) {
-	        _classCallCheck(this, Interface);
-
-	        this._namesapce = namespace;
-	    }
-
-	    // 添加一条日志记录
-
-
-	    _createClass(Interface, [{
-	        key: '_record',
-	        value: function _record(level, descriptor, data) {
-	            util.throwError('method _record is not implemented.');
-	        }
-
-	        // 添加一条等级为info的日志记录
-
-	    }, {
-	        key: 'info',
-	        value: function info() {
-	            this._record.apply(this, Array.prototype.unshift.call(arguments, 'info') && arguments);
-	        }
-
-	        // 添加一条等级为warn的日志记录
-
-	    }, {
-	        key: 'warn',
-	        value: function warn() {
-	            this._record.apply(this, Array.prototype.unshift.call(arguments, 'warning') && arguments);
-	        }
-
-	        // 添加一条等级为error的日志记录
-
-	    }, {
-	        key: 'error',
-	        value: function error() {
-	            this._record.apply(this, Array.prototype.unshift.call(arguments, 'error') && arguments);
-	        }
-
-	        // 添加一条等级为critical的日志记录
-
-	    }, {
-	        key: 'critical',
-	        value: function critical() {
-	            this._record.apply(this, Array.prototype.unshift.call(arguments, 'critical') && arguments);
-	        }
-	    }]);
-
-	    return Interface;
-	}();
-
-	exports.default = Interface;
-
-/***/ },
-/* 3 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.throwError = throwError;
-	function throwError(errMessage) {
-	    throw new Error('Logline: ' + errMessage);
-	}
-
-/***/ },
-/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -584,6 +402,191 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(_interface2.default);
 
 	exports.default = WebsqlLogger;
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _util = __webpack_require__(3);
+
+	var util = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Interface = function () {
+	    function Interface(namespace) {
+	        _classCallCheck(this, Interface);
+
+	        this._namesapce = namespace;
+	    }
+
+	    // 添加一条日志记录
+
+
+	    _createClass(Interface, [{
+	        key: '_record',
+	        value: function _record(level, descriptor, data) {
+	            util.throwError('method _record is not implemented.');
+	        }
+
+	        // 添加一条等级为info的日志记录
+
+	    }, {
+	        key: 'info',
+	        value: function info() {
+	            this._record.apply(this, Array.prototype.unshift.call(arguments, 'info') && arguments);
+	        }
+
+	        // 添加一条等级为warn的日志记录
+
+	    }, {
+	        key: 'warn',
+	        value: function warn() {
+	            this._record.apply(this, Array.prototype.unshift.call(arguments, 'warning') && arguments);
+	        }
+
+	        // 添加一条等级为error的日志记录
+
+	    }, {
+	        key: 'error',
+	        value: function error() {
+	            this._record.apply(this, Array.prototype.unshift.call(arguments, 'error') && arguments);
+	        }
+
+	        // 添加一条等级为critical的日志记录
+
+	    }, {
+	        key: 'critical',
+	        value: function critical() {
+	            this._record.apply(this, Array.prototype.unshift.call(arguments, 'critical') && arguments);
+	        }
+	    }]);
+
+	    return Interface;
+	}();
+
+	exports.default = Interface;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.throwError = throwError;
+	function throwError(errMessage) {
+	    throw new Error('Logline: ' + errMessage);
+	}
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _interface = __webpack_require__(2);
+
+	var _interface2 = _interopRequireDefault(_interface);
+
+	var _util = __webpack_require__(3);
+
+	var util = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var localStorageLogger = function (_LoggerInterface) {
+	    _inherits(localStorageLogger, _LoggerInterface);
+
+	    function localStorageLogger() {
+	        var _ref;
+
+	        _classCallCheck(this, localStorageLogger);
+
+	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	            args[_key] = arguments[_key];
+	        }
+
+	        return _possibleConstructorReturn(this, (_ref = localStorageLogger.__proto__ || Object.getPrototypeOf(localStorageLogger)).call.apply(_ref, [this].concat(args)));
+	    }
+
+	    _createClass(localStorageLogger, [{
+	        key: '_record',
+	        value: function _record(level, descriptor, data) {
+	            var logs = window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : [];
+	            logs.push({
+	                time: Date.now(),
+	                namespace: this._namesapce,
+	                level: level,
+	                descriptor: descriptor,
+	                data: data
+	            });
+	            try {
+	                window.localStorage.setItem('logline', JSON.stringify(logs));
+	            } catch (e) {
+	                util.throwError('error inserting record');
+	            }
+	        }
+	    }], [{
+	        key: 'init',
+	        value: function init() {
+	            if (!('localStorage' in window)) {
+	                util.throwError('your platform does not support localstorage protocol.');
+	            }
+	            if (!window.localStorage.getItem('logline')) {
+	                window.localStorage.setItem('logline', JSON.stringify([]));
+	            }
+	        }
+	    }, {
+	        key: 'all',
+	        value: function all(readyFn) {
+	            readyFn(JSON.parse(window.localStorage.getItem('logline')));
+	        }
+	    }, {
+	        key: 'keep',
+	        value: function keep(daysToMaintain) {
+	            var logs = !daysToMaintain ? [] : (window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : []).filter(function (log) {
+	                return log.time >= Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
+	            });
+	            window.localStorage.setItem('logline', JSON.stringify(logs));
+	        }
+	    }, {
+	        key: 'clean',
+	        value: function clean() {
+	            window.localStorage.removeItem('logline');
+	        }
+	    }]);
+
+	    return localStorageLogger;
+	}(_interface2.default);
+
+	exports.default = localStorageLogger;
 
 /***/ },
 /* 5 */
