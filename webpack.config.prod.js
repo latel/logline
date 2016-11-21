@@ -2,15 +2,17 @@ var pkg = require('./package.json');
 var webpack = require('webpack');
 
 module.exports = {
+    devtool: 'source-map',
     entry: {
         logline: './src/logline.js'
     },
     output: {
         path: './dist',
-        filename: '[name].js',
+        filename: '[name].min.js',
         library: 'Logline',
         libraryTarget: 'umd',
-        umdNameDefine: true
+        umdNameDefine: true,
+        sourceMapFilename: '[name].map'
     },
     module: {
         loaders: [
@@ -29,7 +31,12 @@ module.exports = {
             pkg.name + ' v' + pkg.version + ' (' + pkg.homepage + ')',
             'Copyright ' + new Date().getFullYear() + ', ' + pkg.author,
             pkg.license + ' license'
-        ].join('\n'))
+        ].join('\n')),
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false
+            }
+        })
     ]
 
 };
