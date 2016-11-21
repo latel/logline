@@ -102,7 +102,7 @@ export default class IndexedDBLogger extends LoggerInterface {
             return transaction.objectStore('logs');
         }
         else {
-            util.throwError('log database is not created or connections is closed, cosidering init it.');
+            util.throwError('log database is not created or connections is closed, considering init it.');
         }
     }
 }
