@@ -127,7 +127,7 @@ Logline.deploy(
 
 自定义构建
 --------
-目前Logline一共实现了`localStorage`、`websql`和`indexedDB`三个日志协议，默认是全部打包，可能你只想使用其中某个协议而已，你可以通过`npm run config`来自定义构建你需要的版本。这样有利于减小包的大小。
+目前Logline一共实现了`localStorage`、`websql`和`indexedDB`三个日志协议，默认是全部打包，可能你只想使用其中某个协议而已，你可以通过`npm run configure`来自定义构建你需要的版本。这样有利于减小包的大小。
 
 ``` shell
 // 配置你需要的协议，去掉不需要的协议申明--with-xxx
