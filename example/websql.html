@@ -65,7 +65,7 @@
         });
 
         setInterval(function() {
-            Logline._protocol.all(function(logs) {
+            Logline.getAll(function(logs) {
                 var html = '', i;
                 for (i = 0; i < logs.length; i++) {
                     html += Object.values(logs[i]).join('\t') + '<br/>';
