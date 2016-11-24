@@ -1,5 +1,5 @@
 import LoggerInterface from './interface';
-import * as util from './lib/util';
+import * as util from '../lib/util';
 
 export default class IndexedDBLogger extends LoggerInterface {
     constructor(...args) {

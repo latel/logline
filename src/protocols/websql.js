@@ -1,5 +1,5 @@
 import LoggerInterface from './interface';
-import * as util from './lib/util';
+import * as util from '../lib/util';
 
 export default class WebsqlLogger extends LoggerInterface {
     constructor(...args) {
@@ -12,7 +12,7 @@ export default class WebsqlLogger extends LoggerInterface {
         if (!triedTimes || triedTimes < 10) {
             if (WebsqlLogger._inited) {
                 try {
-                    WebsqlLogger._db.transaction(function(tx) {
+                    WebsqlLogger._db.transaction(tx => {
                         tx.executeSql(
                             'INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)',
                             [Date.now(), self._namesapce, level, descriptor, (data === undefined || data === '') ? '' : (JSON.stringify(data) || '')],
@@ -49,7 +49,7 @@ export default class WebsqlLogger extends LoggerInterface {
         }
         try {
             WebsqlLogger._db = window.openDatabase('logline', '1.0', 'cats loves logs', 4.85 * 1024 * 1024);
-            WebsqlLogger._db.transaction(function(tx) {
+            WebsqlLogger._db.transaction(tx => {
                 tx.executeSql(
                     'CREATE TABLE IF NOT EXISTS logs (time, namespace, level, descriptor, data)',
                     [],
@@ -70,7 +70,7 @@ export default class WebsqlLogger extends LoggerInterface {
                 tx.executeSql(
                     'SELECT * FROM logs',
                     [],
-                    function(tx, res) {
+                    (tx, res) => {
                         var logs = [], index = res.rows.length;
                         while (--index >= 0) {
                             logs.push(res.rows.item(index));
@@ -108,7 +108,7 @@ export default class WebsqlLogger extends LoggerInterface {
 
     static clean() {
         try {
-            WebsqlLogger._db.transaction(function(tx) {
+            WebsqlLogger._db.transaction(tx => {
                 tx.executeSql(
                     'DROP TABLE logs',
                     [],
