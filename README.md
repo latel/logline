@@ -30,7 +30,7 @@ logline是一个轻量，实用和客户端级的前端客户端日志记录工�
 
 + 基本的日志记录功能
 + 命名空间支持多个模块同时写日志
-+ 支持websql/localStorage/indexedDB三种web客户端持久化存储方案
++ 支持websql/localstorage/indexeddb三种web客户端持久化存储方案
 + 日志等级
 + 日志清理（防止日志过多，占用上传带宽和占满用户允许的内存）
 + 日志上传（需后端提供接口支持接收）
@@ -62,20 +62,14 @@ Logline.using(Logline.PROTOCOL.WEBSQL);
 </script>
 ```
 
-### 2. 配置上传地址
-
-``` javascript
-Logline.reportTo('https://hostname.com/cgi-bin/weblog.cgi');
-```
-
-### 3. 清理日志
+### 2. 清理日志
 
 ``` javascript
 Logline.keep(.5); // 保留半天以内的日志，如果不传参则清空日志
 Logline.clean(); // 清空日志并删除数据库
 ```
 
-### 4. 记录日志
+### 3. 记录日志
 
 ``` javascript
 // 不同的模块使用不同的日志会话
@@ -100,7 +94,7 @@ sdkLog.critical('system.vanish', {
 });
 ```
 
-### 5. 读取日志
+### 4. 读取日志
 
 ``` javascript
 Logline.getAll(function(logs) {
@@ -108,50 +102,43 @@ Logline.getAll(function(logs) {
 });
 ```
 
-### 6. 上传日志(deprecated)
-
-``` javascript
-Logline.deploy(
-	'upload reason description for this time',
-	function ticker(percentage) {
-		console.log('已上传' + percentage + '%');
-	},
-	function successHandler() {
-		alert('上传成功');
-	},
-	function errorHandler() {
-		alert('上传失败');
-	}
-);
-```
 
 自定义构建
 --------
-目前Logline一共实现了`localStorage`、`websql`和`indexedDB`三个日志协议，默认是全部打包，可能你只想使用其中某个协议而已，你可以通过`npm run configure`来自定义构建你需要的版本。这样有利于减小包的大小。
+目前Logline一共实现了`localstorage`、`websql`和`indexeddb`三个日志协议，默认是全部打包，可能你只想使用其中某个协议而已，你可以通过`npm run configure`来自定义构建你需要的版本。这样有利于减小包的大小。
 
 ``` shell
+// 不跟参数默认构建所有协议
+npm run configure
 // 配置你需要的协议，去掉不需要的协议申明--with-xxx
-// 注意大小写
-npm run configure -- --with-localStorage --with-websql --with-indexedDB
+npm run configure -- --with-localstorage --with-websql --with-indexeddb
 // 重新打包
 npm run build
-// 去dist目录寻找新构建的文件
+// 去dist目录寻找新构建的打包文件
 ```
 
 
-日志分析 [logline-viewer]()
--------------------------
-由于Logline上传的日志格式符合标准，具有良好的可阅读性，因此我们可以在某种程度上直接使用命令行工具或者编辑器来阅读。但是对命令行不熟悉的用户使用可能仍然有困难，因此有必要使用Web技术栈搭建一个易于使用并且视觉良好的工具。我们希望这套工具可以不依赖与后端，既可以部署在服务器端，也可以当做本地网页直接双击打开，也可以被简单的包一层外壳而当做桌面APP来使用。
+FAQ
+----
 
-作为日志，承载的最主要的内容便是大量的纯文本，在调研了一些方案后，我们认为H5规范中的FileReader.readAsText可以很好的做到这一点，结合拖放事件，我们便可以很大致构建出一个不错的方案：用户将一个或者多个日志文件拖放至网页中，即可对这些日志合并分析和检索。
+### 如何上传日志？
+从v1.0.1以开始，日志上传功能被移除，我们希望logline更专注于日志的记录和维护工作，你可以通过`Logline.getAll`来获取日志来自行实现上传过程。
+
+### 如何分析日志
+-------------
+由于Logline上传的日志格式符合标准，具有良好的可阅读性，因此我们可以在某种程度上直接使用命令行工具或者编辑器来阅读。
+但是对命令行不熟悉的用户使用可能仍然有困难，因此有必要使用Web技术栈搭建一个易于使用并且视觉良好的工具。
+
+我们为此准备了[Logline-viewer]以供使用。
 
 
 他们都在用
 ---------
-![腾讯微证券](https://wzq.tenpay.com/weixin/v1/pic/logo/common.png?v=201611211243)
+![腾讯微证券](https://wzq.tenpay.com/weixin/v1/pic/logo/common.png)
 
 
 
 [travis-image]: https://api.travis-ci.org/latel/logline.svg
 [travis-url]: https://travis-ci.org/latel/logline
 [logline-viewer]: https://github.com/latel/logline-viewer
+[logline-uploader]: https://github.com/latel/logline-uploader

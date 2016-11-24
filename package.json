@@ -1,12 +1,12 @@
 {
   "name": "logline",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "logs for the frontend",
   "main": "dist/logline.min.js",
   "scripts": {
     "test": "mocha",
     "configure": "gulp configure",
-    "build:dev": "webpack --config webpack.config.js",
+    "build:dev": "webpack --config webpack.config.js --colors --display-modules --sort-modules-by size --profile",
     "build:prod": "webpack --config webpack.config.prod.js",
     "build": "npm run build:dev && npm run build:prod && npm run test"
   },

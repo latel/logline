@@ -1,6 +1,6 @@
-import WebsqlLogger from './websql';
-import LocalStorageLogger from './localStorage';
-import IndexedDBLogger from './indexedDB';
+import IndexeddbLogger from './protocols/indexeddb';
+import LocalstorageLogger from './protocols/localstorage';
+import WebsqlLogger from './protocols/websql';
 import * as util from './lib/util';
 
 
@@ -20,54 +20,7 @@ class Logline {
     // 获取所有日志
     static getAll(readyFn) {
         Logline._checkProtocol();
-        Logline._protocol.all(function(logs) {
-            readyFn(logs);
-        });
-    }
-
-    // 发送日志
-    static deploy(descriptor, tickerFn, readyFn, errorFn) {
-        Logline._checkProtocol();
-        if (Logline._reportTo) {
-            Logline._protocol.all(function(logs) {
-                var xhr = new XMLHttpRequest(),
-                    logsToSend = [],
-                    log, key, line;
-
-                xhr.upload.onprogress = tickerFn;
-                xhr.onload = function() {
-                    if (200 === xhr.status) {
-                        'function' === typeof readyFn && readyFn();
-                    }
-                    else {
-                        'function' === typeof errorFn && errorFn();
-                    }
-                };
-                xhr.onerror = function() {
-                    'function' === typeof errorFn && errorFn();
-                };
-                xhr.open('POST', Logline._reportTo);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-                // 处理logs成常见的日志形式来上报(一行一条日志内容)，避免重复键名占用空间
-                while ((log = logs.pop())) {
-                    line = [];
-                    for (key in log) {
-                        if (log.hasOwnProperty(key) && log[key]) {
-                            line.push(log[key]);
-                        }
-                    }
-                    logsToSend.push(line.join('\t'));
-                }
-
-                xhr.withCredentials = true;
-                logsToSend.unshift(location.host + (descriptor ? (': ' + descriptor) : ''));
-                xhr.send('data=' + (escape(logsToSend.join('\n')) || 'no data'));
-            });
-        }
-        else {
-            util.throwError('report address is not configed.');
-        }
+        Logline._protocol.all(logs => readyFn(logs));
     }
 
     // 清理日志
@@ -97,7 +50,7 @@ class Logline {
             return this;
         }
 
-        if (-1 < Object.values(Logline.PROTOCOL).indexOf(protocol)) {
+        if (-1 < [IndexeddbLogger, LocalstorageLogger, WebsqlLogger].indexOf(protocol)) {
             Logline._protocol = protocol;
             Logline.init();
         }
@@ -115,18 +68,12 @@ class Logline {
 
         return this;
     }
-
-    // 配置日志上报地址
-    static reportTo(reportTo) {
-        Logline._reportTo = reportTo;
-        return this;
-    }
 }
 
 Logline.PROTOCOL = {
-    WEBSQL: WebsqlLogger,
-    LOCALSTORAGE: LocalStorageLogger,
-    INDEXEDDB: IndexedDBLogger
+    INDEXEDDB: IndexeddbLogger,
+    LOCALSTORAGE: LocalstorageLogger,
+    WEBSQL: WebsqlLogger
 };
 
 module.exports = Logline;

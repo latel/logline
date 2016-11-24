@@ -2,6 +2,7 @@ var pkg = require('./package.json');
 var webpack = require('webpack');
 
 module.exports = {
+    devtool: 'cheap-module-eval-source-map',
     entry: {
         logline: './src/logline.js'
     },

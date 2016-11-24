@@ -1,5 +1,5 @@
 import LoggerInterface from './interface';
-import * as util from './lib/util';
+import * as util from '../lib/util';
 
 export default class localStorageLogger extends LoggerInterface {
     constructor(...args) {
@@ -34,7 +34,7 @@ export default class localStorageLogger extends LoggerInterface {
     }
 
     static keep(daysToMaintain) {
-        var logs = !daysToMaintain ? [] : (window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : []).filter(function(log) {
+        var logs = !daysToMaintain ? [] : (window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : []).filter(log => {
             return log.time >= (Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000);
         });
         window.localStorage.setItem('logline', JSON.stringify(logs));

@@ -1,4 +1,5 @@
 var fs = require('fs');
+var fse = require('fs-extra');
 var path = require('path');
 var pkg = require('./package.json');
 var rename = require('gulp-rename');
@@ -8,13 +9,30 @@ var argv = require('minimist')(process.argv.slice(2));
 
 
 gulp.task('configure', function() {
+    var protocols = [];
+    // 修正参数
     delete argv._;
+    // 根据configure参数得到需要构建的协议
+    if (!Object.keys(argv).length) {
+        fse.walkSync(path.join(__dirname, '/src/protocols')).map(function(protocol) {
+            if (/\.js$/.test(protocol)) {
+                protocol = protocol.match(/(\w+)\.js$/)[1];
+                if (protocol !== 'interface') {
+                    protocols.push(protocol);
+                }
+            }
+        });
+    }
+    else {
+        protocols = Object.keys(argv).map(function(name) {
+            return name.replace(/^with\-/, '');
+        });
+    }
+
     gulp.src(path.join(__dirname, '/src/configure'))
         .pipe(handlebars(
             {
-                protocols: Object.keys(argv).map(function(name) {
-                    return name.replace(/^with\-/, '');
-                })
+                protocols: protocols
             },
             {
                 helpers: {
@@ -30,6 +48,13 @@ gulp.task('configure', function() {
                         return all ? str.toUpperCase() : str.replace(/^(\w)(.*)/, function(str, cap, rest) {
                             return cap.toUpperCase() + rest;
                         });
+                    },
+                    join: function(joiner, postFix, seperator) {
+                        return joiner.map(function(str) {
+                            return (str + postFix).replace(/^\w/, function(cap) {
+                                return cap.toUpperCase();
+                            });
+                        }).join(seperator);
                     }
                 }
             }
