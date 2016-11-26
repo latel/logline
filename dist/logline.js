@@ -168,7 +168,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return this;
 	            }
 
-	            Logline.database(database);
+	            Logline.database(database || Logline._database);
 	            Logline._initProtocol(protocol);
 	            return this;
 	        }
