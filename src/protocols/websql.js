@@ -27,16 +27,17 @@ export default class WebsqlLogger extends LoggerInterface {
         } catch (e) { util.throwError('error inserting record'); }
     }
 
-    static init() {
+    static init(database) {
         if (!WebsqlLogger.support) {
             util.throwError(new Error('your platform does not support websql protocol.'));
         }
 
         WebsqlLogger._pool = new Pool();
+        WebsqlLogger._database = database || 'logline';
         WebsqlLogger.status = super.STATUS.INITING;
 
         try {
-            WebsqlLogger._db = window.openDatabase('logline', '1.0', 'cats loves logs', 4.85 * 1024 * 1024);
+            WebsqlLogger._db = window.openDatabase(WebsqlLogger._database, '1.0', 'cats loves logs', 4.85 * 1024 * 1024);
             WebsqlLogger._db.transaction(tx => {
                 tx.executeSql(
                     'CREATE TABLE IF NOT EXISTS logs (time, namespace, level, descriptor, data)', [],

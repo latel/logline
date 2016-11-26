@@ -32,15 +32,16 @@ export default class IndexedDBLogger extends LoggerInterface {
         };
     }
 
-    static init() {
+    static init(database) {
         if (!IndexedDBLogger.support) {
             util.throwError('your platform does not support indexeddb protocol.');
         }
 
         IndexedDBLogger._pool = new Pool();
+        IndexedDBLogger._database = database || 'logline';
         IndexedDBLogger.status = super.STATUS.INITING;
 
-        IndexedDBLogger.request = window.indexedDB.open('logline');
+        IndexedDBLogger.request = window.indexedDB.open(database);
         IndexedDBLogger.request.onerror = event => util.throwError('protocol indexeddb is prevented.');
         IndexedDBLogger.request.onsuccess = event => {
             IndexedDBLogger.db = event.target.result;
@@ -126,7 +127,7 @@ export default class IndexedDBLogger extends LoggerInterface {
 
         // database can be removed only after all connections are closed
         IndexedDBLogger.db.close();
-        let request = window.indexedDB.deleteDatabase('logline');
+        let request = window.indexedDB.deleteDatabase(IndexedDBLogger._database);
         request.onerror = event => util.throwError(event.target.errorCode);
         /* eslint no-unused-vars: "off" */
         request.onsuccess = event => {

@@ -10,14 +10,19 @@ class Logline {
         return new Logline._protocol(namespace);
     }
 
+    // 选择并初始化协议
+    static _initProtocol(protocol) {
+        Logline._protocol = protocol;
+        Logline._protocol.init(Logline._database || 'logline');
+    }
+
     // 检查协议
     static _checkProtocol() {
         if (!Logline._protocol) {
             let protocols = Object.keys(Logline.PROTOCOL), protocol;
             while ((protocol = Logline.PROTOCOL[protocols.shift()])) {
                 if (protocol.support) {
-                    Logline._protocol = protocol;
-                    Logline._protocol.init();
+                    Logline._initProtocol(protocol);
                     return;
                 }
             }
@@ -47,7 +52,7 @@ class Logline {
     }
 
     // 选择一个日志协议
-    static using(protocol) {
+    static using(protocol, database) {
         // protocol unavailable is not allowed
         if (-1 === [IndexeddbLogger, WebsqlLogger, LocalstorageLogger].indexOf(protocol)) {
             util.throwError('specialfied protocol ' + (protocol ? (protocol + ' ') : '') + 'is not available');
@@ -58,10 +63,13 @@ class Logline {
             return this;
         }
 
-        Logline._protocol = protocol;
-        Logline._protocol.init();
-
+        Logline.database(database);
+        Logline._initProtocol(protocol);
         return this;
+    }
+
+    static database(name) {
+        Logline._database = name;
     }
 }
 

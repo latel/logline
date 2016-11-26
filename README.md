@@ -129,6 +129,19 @@ Logline.keep(.5); // 保留半天以内的日志，如果不传参则清空日�
 Logline.clean(); // 清空日志并删除数据库
 ```
 
+### 7. 自定义数据库名
+
+由于 indexeddb, websql 和 localStorage 都是同域共享的，这时候 Logline 默认的数据库名 logline 可能会已经被占用，需要指定一个新的数据名。
+可以通过下面2个方法指定数据库名。
+
+``` javascript
+// 调用`using`时，同时指定第二个参数作为数据库名
+Logline.using(Logline.PROTOCOL.WEBSQL, 'newlogline');
+
+// 调用`databse`来指定数据库名
+Logline.database('newlogline');
+```
+
 
 自定义构建
 --------

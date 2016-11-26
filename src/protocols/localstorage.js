@@ -7,7 +7,7 @@ export default class LocalStorageLogger extends LoggerInterface {
     }
 
     _record(level, descriptor, data) {
-        var logs = window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : [];
+        var logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
         logs.push({
             time: Date.now(),
             namespace: this._namesapce,
@@ -16,33 +16,34 @@ export default class LocalStorageLogger extends LoggerInterface {
             data: data
         });
         try {
-            window.localStorage.setItem('logline', JSON.stringify(logs));
+            window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
         } catch (e) { util.throwError('error inserting record'); }
     }
 
-    static init() {
+    static init(database) {
         if (!LocalStorageLogger.support) {
             util.throwError('your platform does not support localstorage protocol.');
         }
-        if (!window.localStorage.getItem('logline')) {
-            window.localStorage.setItem('logline', JSON.stringify([]));
+        LocalStorageLogger._database = database || 'logline';
+        if (!window.localStorage.getItem(LocalStorageLogger._database)) {
+            window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
         }
         LocalStorageLogger.status = super.STATUS.INITED;
     }
 
     static all(readyFn) {
-        readyFn(JSON.parse(window.localStorage.getItem('logline')));
+        readyFn(JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)));
     }
 
     static keep(daysToMaintain) {
-        var logs = !daysToMaintain ? [] : (window.localStorage.getItem('logline') ? JSON.parse(window.localStorage.getItem('logline')) : []).filter(log => {
+        var logs = !daysToMaintain ? [] : (window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : []).filter(log => {
             return log.time >= (Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000);
         });
-        window.localStorage.setItem('logline', JSON.stringify(logs));
+        window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
     }
 
     static clean() {
-        window.localStorage.removeItem('logline');
+        window.localStorage.removeItem(LocalStorageLogger._database);
     }
 }
 

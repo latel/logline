@@ -4,5 +4,6 @@ WIP
 [ ] 丰富英文代码注释
 [ ] 完善错误处理细节
 [ ] 测试环境由jsdom迁移至phantomjs
+[ ] 优化存取结构
 
 CONSIDERING
