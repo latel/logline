@@ -6,6 +6,12 @@ var rename = require('gulp-rename');
 var gulp = require('gulp');
 var handlebars = require('gulp-compile-handlebars');
 var argv = require('minimist')(process.argv.slice(2));
+var colors = require('colors');
+var moment = require('moment');
+
+function verbose(log) {
+    console.log('[' + moment().format('HH:mm:ss').grey + '] ' + log);
+}
 
 
 gulp.task('configure', function() {
@@ -28,6 +34,8 @@ gulp.task('configure', function() {
             return name.replace(/^with\-/, '');
         });
     }
+
+    verbose('Using protocols(priority is respected): ' + protocols.join().magenta);
 
     gulp.src(path.join(__dirname, '/src/configure'))
         .pipe(handlebars(

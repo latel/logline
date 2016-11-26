@@ -1,4 +1,5 @@
 import LoggerInterface from './interface';
+import Pool from '../lib/pool';
 import * as util from '../lib/util';
 
 export default class WebsqlLogger extends LoggerInterface {
@@ -6,58 +7,46 @@ export default class WebsqlLogger extends LoggerInterface {
         super(...args);
     }
 
-    _record(level, descriptor, data, triedTimes) {
-        var self = this, args = arguments;
-
-        if (!triedTimes || triedTimes < 10) {
-            if (WebsqlLogger._inited) {
-                try {
-                    WebsqlLogger._db.transaction(tx => {
-                        tx.executeSql(
-                            'INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)',
-                            [Date.now(), self._namesapce, level, descriptor, (data === undefined || data === '') ? '' : (JSON.stringify(data) || '')],
-                            function() {/* empty func */},
-                            function(tx, e) {throw e;}
-                        );
-                    });
-                } catch (e) { util.throwError('error inserting record'); }
-            }
-            else {
-                setTimeout(function() {
-                    switch (args.length) {
-                    case 2:
-                        Array.prototype.push.call(args, '', 1);
-                        break;
-                    case 3:
-                        Array.prototype.push.call(args, 1);
-                        break;
-                    case 4:
-                        Array.prototype.push.call(args = Array.prototype.slice.call(args, 0, 3), triedTimes + 1);
-                        break;
-                    default:
-                        break;
-                    }
-                    self._record.apply(self, args);
-                });
-            }
+    _record(level, descriptor, data) {
+        if (WebsqlLogger.status === LoggerInterface.STATUS.INITING) {
+            WebsqlLogger._pool.push(() => {
+                this._record(level, descriptor, data);
+            });
+            return;
         }
-    }
 
-    static init() {
-        if (!('openDatabase' in window)) {
-            util.throwError(new Error('your platform does not support websql protocol.'));
-        }
         try {
-            WebsqlLogger._db = window.openDatabase('logline', '1.0', 'cats loves logs', 4.85 * 1024 * 1024);
             WebsqlLogger._db.transaction(tx => {
                 tx.executeSql(
-                    'CREATE TABLE IF NOT EXISTS logs (time, namespace, level, descriptor, data)',
-                    [],
-                    function() {
-                        WebsqlLogger._inited = true;
+                    'INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)',
+                    [Date.now(), this._namesapce, level, descriptor, (data === undefined || data === '') ? '' : (JSON.stringify(data) || '')],
+                    () => {/* empty func */},
+                    (tx, e) => { throw e; }
+                );
+            });
+        } catch (e) { util.throwError('error inserting record'); }
+    }
+
+    static init(database) {
+        if (!WebsqlLogger.support) {
+            util.throwError(new Error('your platform does not support websql protocol.'));
+        }
+
+        WebsqlLogger._pool = new Pool();
+        WebsqlLogger._database = database || 'logline';
+        WebsqlLogger.status = super.STATUS.INITING;
+
+        try {
+            WebsqlLogger._db = window.openDatabase(WebsqlLogger._database, '1.0', 'cats loves logs', 4.85 * 1024 * 1024);
+            WebsqlLogger._db.transaction(tx => {
+                tx.executeSql(
+                    'CREATE TABLE IF NOT EXISTS logs (time, namespace, level, descriptor, data)', [],
+                    () => {
+                        WebsqlLogger.status = super.STATUS.INITED;
+                        WebsqlLogger._pool.consume();
                     },
-                    function() {
-                        WebsqlLogger._inited = false;
+                    () => {
+                        WebsqlLogger.status = super.STATUS.FAILED;
                     }
                 );
             });
@@ -65,11 +54,17 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     static all(readyFn) {
+        if (WebsqlLogger.status === super.STATUS.INITING) {
+            WebsqlLogger._pool.push(() => {
+                WebsqlLogger.all(readyFn);
+            });
+            return;
+        }
+
         try {
             WebsqlLogger._db.transaction(function(tx) {
                 tx.executeSql(
-                    'SELECT * FROM logs',
-                    [],
+                    'SELECT * FROM logs', [],
                     (tx, res) => {
                         var logs = [], index = res.rows.length;
                         while (--index >= 0) {
@@ -77,13 +72,20 @@ export default class WebsqlLogger extends LoggerInterface {
                         }
                         readyFn(logs);
                     },
-                    function(tx, e) {throw e;}
+                    (tx, e) => { throw e; }
                 );
             });
         } catch (e) { util.throwError('unable to collect logs from database.'); }
     }
 
     static keep(daysToMaintain) {
+        if (WebsqlLogger.status === super.STATUS.INITING) {
+            WebsqlLogger._pool.push(() => {
+                WebsqlLogger.keep(daysToMaintain);
+            });
+            return;
+        }
+
         try {
             WebsqlLogger._db.transaction(function(tx) {
                 if (daysToMaintain) {
@@ -96,10 +98,9 @@ export default class WebsqlLogger extends LoggerInterface {
                 }
                 else {
                     tx.executeSql(
-                        'DELETE FROM logs',
-                        [],
-                        function() {/* empty func */},
-                        function(tx, e) {throw e;}
+                        'DELETE FROM logs', [],
+                        () => {/* empty func */},
+                        (tx, e) => { throw e; }
                     );
                 }
             });
@@ -107,15 +108,25 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     static clean() {
+        if (WebsqlLogger.status === super.STATUS.INITING) {
+            WebsqlLogger._pool.push(() => {
+                WebsqlLogger.clean();
+            });
+            return;
+        }
+
         try {
             WebsqlLogger._db.transaction(tx => {
                 tx.executeSql(
-                    'DROP TABLE logs',
-                    [],
-                    function() {/* empty func */},
-                    function(tx, e) {throw e;}
+                    'DROP TABLE logss', [],
+                    () => {
+                        delete WebsqlLogger.status;
+                    },
+                    (tx, e) => { throw e; }
                 );
             });
         } catch (e) { util.throwError('unable to clean log database.'); }
     }
 }
+
+WebsqlLogger.support = 'openDatabase' in window;

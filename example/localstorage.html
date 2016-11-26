@@ -27,7 +27,7 @@
             <div><span>data:</span><input type="text" name="data" placeholder="输入日志描述或者附加数据"></div>
             <div>
                 <span></span>
-                <input type="button" value="添加" id="add"/>
+                <input type="submit" value="添加" id="add"/>
                 <input type="button" value="清空" id="keep"/>
                 <input type="button" value="删除数据库" id="clean"/>
             </div>
@@ -38,41 +38,10 @@
     </article>
 
     <link rel="stylesheet" href="./style.css"/>
-    <script src="../dist/logline.min.js"></script>
+    <script src="../dist/logline.js"></script>
+    <script src="./main.js"></script>
     <script>
-        Logline.using(Logline.PROTOCOL.LOCALSTORAGE);
-
-        document.querySelector('#add').addEventListener('click', function() {
-            var forms = new FormData(document.forms.namedItem("form"));
-            if (!forms.get('namespace')) {
-                alert('模块名不可为空');
-                return false;
-            }
-            if (!forms.get('descriptor')) {
-                alert('描述符不可为空');
-                return false;
-            }
-            var log = new Logline(forms.get('namespace'));
-            log[forms.get('level')](forms.get('descriptor'), forms.get('data'));
-        });
-
-        document.querySelector('#keep').addEventListener('click', function() {
-            Logline.keep(0);
-        });
-
-        document.querySelector('#clean').addEventListener('click', function() {
-            Logline.clean();
-        });
-
-        setInterval(function() {
-            Logline.getAll(function(logs) {
-                var html = '', i;
-                for (i = 0; i < logs.length; i++) {
-                    html += Object.values(logs[i]).join('\t') + '<br/>';
-                }
-                document.querySelector('article').innerHTML = html;
-            });
-        }, 200);
+        test('localstorage');
     </script>
 </body>
 </html>

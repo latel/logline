@@ -1,6 +1,6 @@
 {
   "name": "logline",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "logs for the frontend",
   "main": "dist/logline.min.js",
   "scripts": {
@@ -37,6 +37,7 @@
     "babel-preset-es2015": "^6.6.0",
     "babel-preset-stage-3": "^6.5.0",
     "chai": "^3.5.0",
+    "colors": "^1.1.2",
     "extract-text-webpack-plugin": "^1.0.1",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
@@ -47,6 +48,7 @@
     "json-loader": "^0.5.4",
     "minimist": "^1.2.0",
     "mocha": "^2.5.3",
+    "moment": "^2.13.0",
     "node-storage-shim": "^1.0.1",
     "webpack": "~1.12.11"
   }

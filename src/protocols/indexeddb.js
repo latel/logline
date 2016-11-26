@@ -1,4 +1,5 @@
 import LoggerInterface from './interface';
+import Pool from '../lib/pool';
 import * as util from '../lib/util';
 
 export default class IndexedDBLogger extends LoggerInterface {
@@ -7,6 +8,13 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     _record(level, descriptor, data) {
+        if (IndexedDBLogger.status === LoggerInterface.STATUS.INITING) {
+            IndexedDBLogger._pool.push(() => {
+                this._record(level, descriptor, data);
+            });
+            return;
+        }
+
         let transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
         transaction.onerror = event => util.throwError(event.target.errorCode);
 
@@ -18,18 +26,27 @@ export default class IndexedDBLogger extends LoggerInterface {
             data: data
         });
 
-        request.onerror = event => util.throwError(event.target.errorCode);
+        request.onerror = event => {
+            IndexedDBLogger.status = super.STATUS.FAILED;
+            util.throwError(event.target.errorCode)
+        };
     }
 
-    static init() {
-        if (!window.indexedDB || !window.IDBTransaction || !window.IDBKeyRange) {
+    static init(database) {
+        if (!IndexedDBLogger.support) {
             util.throwError('your platform does not support indexeddb protocol.');
         }
 
-        IndexedDBLogger.request = window.indexedDB.open('logline');
+        IndexedDBLogger._pool = new Pool();
+        IndexedDBLogger._database = database || 'logline';
+        IndexedDBLogger.status = super.STATUS.INITING;
+
+        IndexedDBLogger.request = window.indexedDB.open(database);
         IndexedDBLogger.request.onerror = event => util.throwError('protocol indexeddb is prevented.');
         IndexedDBLogger.request.onsuccess = event => {
             IndexedDBLogger.db = event.target.result;
+            IndexedDBLogger.status = super.STATUS.INITED;
+            IndexedDBLogger._pool.consume();
             // globally handle db request errors
             IndexedDBLogger.db.onerror = event => util.throwError(event.target.errorCode);
         };
@@ -44,6 +61,13 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     static all(readyFn) {
+        if (IndexedDBLogger.status === super.STATUS.INITING) {
+            IndexedDBLogger._pool.push(() => {
+                IndexedDBLogger.all(readyFn);
+            });
+            return;
+        }
+
         let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY || 'readonly'),
             request = store.openCursor(),
             logs = [];
@@ -68,6 +92,13 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     static keep(daysToMaintain) {
+        if (IndexedDBLogger.status === super.STATUS.INITING) {
+            IndexedDBLogger._pool.push(() => {
+                IndexedDBLogger.keep(daysToMaintain);
+            });
+            return;
+        }
+
         let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
         if (!daysToMaintain) {
             let request = store.clear().onerror = event => util.throwError(event.target.errorCode);
@@ -87,12 +118,22 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     static clean() {
+        if (IndexedDBLogger.status === super.STATUS.INITING) {
+            IndexedDBLogger._pool.push(() => {
+                IndexedDBLogger.clean();
+            });
+            return;
+        }
+
         // database can be removed only after all connections are closed
         IndexedDBLogger.db.close();
-        let request = window.indexedDB.deleteDatabase('logline');
+        let request = window.indexedDB.deleteDatabase(IndexedDBLogger._database);
         request.onerror = event => util.throwError(event.target.errorCode);
         /* eslint no-unused-vars: "off" */
-        request.onsuccess = event => delete IndexedDBLogger.db;
+        request.onsuccess = event => {
+            delete IndexedDBLogger.status;
+            delete IndexedDBLogger.db;
+        };
     }
 
     static _getTransactionStore(mode) {
@@ -106,3 +147,5 @@ export default class IndexedDBLogger extends LoggerInterface {
         }
     }
 }
+
+IndexedDBLogger.support = !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);

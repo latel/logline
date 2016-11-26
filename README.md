@@ -13,6 +13,10 @@ logline是一个轻量，实用和客户端级的前端客户端日志记录工�
 应用场景
 ------
 
++ 回放用户细节操作
+
+	真实应用场景下，用户的行为可能是不可预料的，甚至用户自己也无法记得自己的操作，有了日志，我们有了回放用户操作和代码运行状态的能力。
+
 + 核心流程监控
 
     在产品的一些核心流程中，我们可以在用户出错的情况下主动上传用户日志，以便我们可以快速统计和定位用户遇到的问题。
@@ -25,22 +29,41 @@ logline是一个轻量，实用和客户端级的前端客户端日志记录工�
 
     我们可以记录js的报错，包含调用队列一起记录，直接上传此错误日志或者在累计达到一个阈值的时候统一上传。
 
-特性支持
-------
+特性
+---
 
-+ 基本的日志记录功能
-+ 命名空间支持多个模块同时写日志
-+ 支持websql/localstorage/indexeddb三种web客户端持久化存储方案
++ 无外部依赖
++ 日志记录
++ 客户端级
++ websql/localstorage/indexeddb三种日志协议
++ 命名空间
 + 日志等级
 + 日志清理（防止日志过多，占用上传带宽和占满用户允许的内存）
-+ 日志上传（需后端提供接口支持接收）
-+ 无外部依赖
-+ 用户级，针对单个用户的分析
 
 快速上手
 ------
 
-### 1. 引入脚本，并选择期望使用的协议
+### 1. 安装
+
+访问 [https://github.com/latel/logline/releases]()，选择需要的版本下载，引入自己的项目。
+
+### 2. 引入脚本
+
+Logline 支持直接使用 script 标签引用，也支持 AMD 模块加载器.
+
+``` javascript
+// Script标签引入方式
+<script src="./mod/logline.min.js"></script>
+<script>
+	// 使用indexedDB协议
+	Logline.using(Logline.PROTOCOL.INDEXEDDB);
+</script>
+
+// AMD模块方式
+var Logline = require('./mod/logline.min');
+```
+
+### 3. 选择日志协议
 
 目前一共支持三个协议， 三个协议都被直接挂载在Logline对象上以便一些特殊的应用场景，也更好的符合语义化:
 
@@ -48,28 +71,25 @@ logline是一个轻量，实用和客户端级的前端客户端日志记录工�
 + indexeddb: Logline.PROTOCOL.INDEXEDDB
 + localstorage: Logline.PROTOCOL.LOCALSTORAGE
 
+你可以在引入Logline之后，使用 `using` 主动选定一个期望使用的日志协议。
+
 ``` javascript
-// AMD/CMD
-// 使用websql协议
-var Logline = require('./mod/logline.min');
 Logline.using(Logline.PROTOCOL.WEBSQL);
 
-// Script Tag
-<script src="./mod/logline.min.js"></script>
-<script>
-	// 使用indexedDB协议
-	Logline.using(Logline.PROTOCOL.INDEXEDDB);
-</script>
 ```
 
-### 2. 清理日志
+如果你没有提前选择一个日志协议，那么当你调用Logline的相关 API 时，Logline 会根据你在构建时给定的参数作为优先级来选择可用的优先级最高的协议。
+比如你的自定义构建命令是`npm run configure -- --with-indexeddb --with-websql --with-localstorage`，
+如果 indexeddb 协议可用，那么indexeddb将作为自动选择的协议。
+如果 indexeddb 协议不可用但是 websql 协议可用，那么将选择 websql 协议，如此类推。
+如果最后发现所有的协议都不可用，将会抛出错误。
 
 ``` javascript
-Logline.keep(.5); // 保留半天以内的日志，如果不传参则清空日志
-Logline.clean(); // 清空日志并删除数据库
+Logline.using(Logline.PROTOCOL.WEBSQL);
+
 ```
 
-### 3. 记录日志
+### 4. 记录日志
 
 ``` javascript
 // 不同的模块使用不同的日志会话
@@ -94,12 +114,32 @@ sdkLog.critical('system.vanish', {
 });
 ```
 
-### 4. 读取日志
+### 5. 读取日志
 
 ``` javascript
 Logline.getAll(function(logs) {
     // process logs here
 });
+```
+
+### 6. 清理日志
+
+``` javascript
+Logline.keep(.5); // 保留半天以内的日志，如果不传参则清空日志
+Logline.clean(); // 清空日志并删除数据库
+```
+
+### 7. 自定义数据库名
+
+由于 indexeddb, websql 和 localStorage 都是同域共享的，这时候 Logline 默认的数据库名 logline 可能会已经被占用，需要指定一个新的数据名。
+可以通过下面2个方法指定数据库名。
+
+``` javascript
+// 调用`using`时，同时指定第二个参数作为数据库名
+Logline.using(Logline.PROTOCOL.WEBSQL, 'newlogline');
+
+// 调用`databse`来指定数据库名
+Logline.database('newlogline');
 ```
 
 
