@@ -6,7 +6,7 @@ npm-debug.log
 bower_components
 
 # editors
-.vscode.DS_Store
+.vscode
 
 # system
 .DS_Store

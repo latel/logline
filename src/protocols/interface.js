@@ -29,4 +29,28 @@ export default class Interface {
     critical(...args) {
         this._record('critical', ...args);
     }
+
+    static init(readyFn) {
+        readyFn();
+    }
+
+    static all(readyFn) {
+        readyFn([]);
+    }
+
+    static keep() {
+
+    }
+
+    static clean() {
+
+    }
+
+    static get STATUS() {
+        return {
+            INITING: 1,
+            INITED: 2,
+            FAILED: 4
+        };
+    }
 }
