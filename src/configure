@@ -13,7 +13,16 @@ class Logline {
     // 检查协议
     static _checkProtocol() {
         if (!Logline._protocol) {
-            util.throwError('you must choose a protocol with "using" method.');
+            let protocols = Object.keys(Logline.PROTOCOL), protocol;
+            while ((protocol = Logline.PROTOCOL[protocols.shift()])) {
+                if (protocol.support) {
+                    Logline._protocol = protocol;
+                    Logline._protocol.init();
+                    return;
+                }
+            }
+
+            throw new Error(protocols.join(', ').toLowerCase() + ' protocols are not supported on this platform');
         }
     }
 
@@ -25,45 +34,31 @@ class Logline {
 
     // 清理日志
     static keep(daysToMaintain) {
-        try {
-            Logline._checkProtocol();
-            Logline._protocol.keep(daysToMaintain);
-        } catch (e) {
-            util.throwError('unable to remove logs earlier than ' + daysToMaintain + 'd.');
-        }
+        Logline._checkProtocol();
+        Logline._protocol.keep(daysToMaintain);
         return this;
     }
 
     // 清空日志并删除数据库
     static clean() {
-        try {
-            Logline._checkProtocol();
-            Logline._protocol.clean();
-        } catch (e) { util.throwError('unable to clean log database.'); }
+        Logline._checkProtocol();
+        Logline._protocol.clean();
         return this;
     }
 
     // 选择一个日志协议
     static using(protocol) {
-        // 协议一旦选定即不允许在运行时更改
+        // protocol unavailable is not allowed
+        if (-1 === [{{join protocols 'Logger' ', '}}].indexOf(protocol)) {
+            util.throwError('specialfied protocol ' + (protocol ? (protocol + ' ') : '') + 'is not available');
+        }
+
+        // once protocol is selected, it shall not be changed during runtime
         if (Logline._protocol) {
             return this;
         }
 
-        if (-1 < [{{join protocols 'Logger' ', '}}].indexOf(protocol)) {
-            Logline._protocol = protocol;
-            Logline.init();
-        }
-        else {
-            util.throwError('specialfied protocol is not available.');
-        }
-
-        return this;
-    }
-
-    // 初始化选定的协议
-    static init() {
-        Logline._checkProtocol();
+        Logline._protocol = protocol;
         Logline._protocol.init();
 
         return this;

@@ -12,7 +12,7 @@ module.exports = {
         library: 'Logline',
         libraryTarget: 'umd',
         umdNameDefine: true,
-        sourceMapFilename: '[name].map'
+        sourceMapFilename: '[name].min.map'
     },
     module: {
         loaders: [

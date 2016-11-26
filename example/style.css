@@ -17,7 +17,7 @@
     width: 12rem;
 }
 
-.box input[type="button"] {
+.box input[type="button"], .box input[type="submit"] {
     width: initial;
     margin-right: .1rem;
 }
