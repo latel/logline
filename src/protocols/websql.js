@@ -21,7 +21,7 @@ export default class WebsqlLogger extends LoggerInterface {
                     'INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)',
                     [Date.now(), this._namesapce, level, descriptor, (data === undefined || data === '') ? '' : (JSON.stringify(data) || '')],
                     () => {/* empty func */},
-                    (tx, e) => { throw e; }
+                    (tx, e) => { throw e.message; }
                 );
             });
         } catch (e) { util.throwError('error inserting record'); }
@@ -69,12 +69,17 @@ export default class WebsqlLogger extends LoggerInterface {
                         var logs = [], line, index = res.rows.length;
                         while (--index >= 0) {
                             line = res.rows.item(index);
-                            line.data = JSON.parse(line.data);
+                            // in some devices, properties are configureable: false, writable: false
+                            line = Object.create(line, {
+                                data: {
+                                    value: JSON.parse(line.data)
+                                }
+                            });
                             logs.push(line);
                         }
                         readyFn(logs);
                     },
-                    (tx, e) => { throw e; }
+                    (tx, e) => { throw e.message; }
                 );
             });
         } catch (e) { util.throwError('unable to collect logs from database.'); }
@@ -95,14 +100,14 @@ export default class WebsqlLogger extends LoggerInterface {
                         'DELETE FROM logs WHERE time < ?',
                         [Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000],
                         function() {/* empty func */},
-                        function(tx, e) {throw e;}
+                        function(tx, e) {throw e.message;}
                     );
                 }
                 else {
                     tx.executeSql(
                         'DELETE FROM logs', [],
                         () => {/* empty func */},
-                        (tx, e) => { throw e; }
+                        (tx, e) => { throw e.message; }
                     );
                 }
             });
@@ -124,7 +129,7 @@ export default class WebsqlLogger extends LoggerInterface {
                     () => {
                         delete WebsqlLogger.status;
                     },
-                    (tx, e) => { throw e; }
+                    (tx, e) => { throw e.message; }
                 );
             });
         } catch (e) { util.throwError('unable to clean log database.'); }

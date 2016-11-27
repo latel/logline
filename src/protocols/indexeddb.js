@@ -72,8 +72,10 @@ export default class IndexedDBLogger extends LoggerInterface {
             request = store.openCursor(),
             logs = [];
 
+        console && console.log('<<------------------------------');
         request.onsuccess = event => {
             var cursor = event.target.result;
+            console && console.log(cursor);
             if (cursor) {
                 logs.push({
                     time: cursor.value.time,
@@ -81,9 +83,11 @@ export default class IndexedDBLogger extends LoggerInterface {
                     descriptor: cursor.value.descriptor,
                     data: cursor.value.data
                 });
+                console && console && console.log('--------------------------');
                 cursor.continue();
             }
             else {
+                console && console && console.log('-------------------------->>');
                 readyFn(logs);
             }
         };
