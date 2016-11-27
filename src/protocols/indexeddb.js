@@ -52,7 +52,7 @@ export default class IndexedDBLogger extends LoggerInterface {
         };
         IndexedDBLogger.request.onupgradeneeded = event => {
             // init dabasebase
-            let db = event.target.result, store = db.createObjectStore('logs', { keyPath: 'timestamp' });
+            let db = event.target.result, store = db.createObjectStore('logs', { autoIncrement: true });
             store.createIndex('namespace', 'namespace', { unique: false });
             store.createIndex('level', 'level', { unique: false });
             store.createIndex('descriptor', 'descriptor', { unique: false });
