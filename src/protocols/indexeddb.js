@@ -16,19 +16,19 @@ export default class IndexedDBLogger extends LoggerInterface {
         }
 
         let transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
-        transaction.onerror = event => util.throwError(event.target.errorCode);
+        transaction.onerror = event => util.throwError(event.target.error);
 
         let store = transaction.objectStore('logs');
         let request = store.add({
-            timestamp: Date.now(),
+            time: Date.now(),
             namespace: this._namesapce,
             descriptor: descriptor,
             data: data
         });
 
         request.onerror = event => {
-            IndexedDBLogger.status = super.STATUS.FAILED;
-            util.throwError(event.target.errorCode)
+            IndexedDBLogger.status = LoggerInterface.STATUS.FAILED;
+            util.throwError(event.target.error);
         };
     }
 
@@ -48,11 +48,11 @@ export default class IndexedDBLogger extends LoggerInterface {
             IndexedDBLogger.status = super.STATUS.INITED;
             IndexedDBLogger._pool.consume();
             // globally handle db request errors
-            IndexedDBLogger.db.onerror = event => util.throwError(event.target.errorCode);
+            IndexedDBLogger.db.onerror = event => util.throwError(event.target.error);
         };
         IndexedDBLogger.request.onupgradeneeded = event => {
             // init dabasebase
-            let db = event.target.result, store = db.createObjectStore('logs', { keyPath: 'timestamp' });
+            let db = event.target.result, store = db.createObjectStore('logs', { keyPath: 'time' });
             store.createIndex('namespace', 'namespace', { unique: false });
             store.createIndex('level', 'level', { unique: false });
             store.createIndex('descriptor', 'descriptor', { unique: false });
@@ -76,7 +76,7 @@ export default class IndexedDBLogger extends LoggerInterface {
             var cursor = event.target.result;
             if (cursor) {
                 logs.push({
-                    timestamp: cursor.value.timestamp,
+                    time: cursor.value.time,
                     namespace: cursor.value.namespace,
                     descriptor: cursor.value.descriptor,
                     data: cursor.value.data
@@ -101,7 +101,7 @@ export default class IndexedDBLogger extends LoggerInterface {
 
         let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
         if (!daysToMaintain) {
-            let request = store.clear().onerror = event => util.throwError(event.target.errorCode);
+            let request = store.clear().onerror = event => util.throwError(event.target.error);
         }
         else {
             let range = IDBKeyRange.upperBound((Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000), true);
@@ -128,7 +128,7 @@ export default class IndexedDBLogger extends LoggerInterface {
         // database can be removed only after all connections are closed
         IndexedDBLogger.db.close();
         let request = window.indexedDB.deleteDatabase(IndexedDBLogger._database);
-        request.onerror = event => util.throwError(event.target.errorCode);
+        request.onerror = event => util.throwError(event.target.error);
         /* eslint no-unused-vars: "off" */
         request.onsuccess = event => {
             delete IndexedDBLogger.status;
@@ -139,7 +139,7 @@ export default class IndexedDBLogger extends LoggerInterface {
     static _getTransactionStore(mode) {
         if (IndexedDBLogger.db) {
             let transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE || 'readwrite');
-            transaction.onerror = event => util.throwError(event.target.errorCode);
+            transaction.onerror = event => util.throwError(event.target.error);
             return transaction.objectStore('logs');
         }
         else {

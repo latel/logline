@@ -64,11 +64,13 @@ export default class WebsqlLogger extends LoggerInterface {
         try {
             WebsqlLogger._db.transaction(function(tx) {
                 tx.executeSql(
-                    'SELECT * FROM logs', [],
+                    'SELECT * FROM logs ORDER BY time DESC', [],
                     (tx, res) => {
-                        var logs = [], index = res.rows.length;
+                        var logs = [], line, index = res.rows.length;
                         while (--index >= 0) {
-                            logs.push(res.rows.item(index));
+                            line = res.rows.item(index);
+                            line.data = JSON.parse(line.data);
+                            logs.push(line);
                         }
                         readyFn(logs);
                     },
@@ -118,7 +120,7 @@ export default class WebsqlLogger extends LoggerInterface {
         try {
             WebsqlLogger._db.transaction(tx => {
                 tx.executeSql(
-                    'DROP TABLE logss', [],
+                    'DROP TABLE logs', [],
                     () => {
                         delete WebsqlLogger.status;
                     },
