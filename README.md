@@ -52,7 +52,7 @@ bower install logline
 ```
 
 #### 直接下载
-访问 [https://github.com/latel/logline/releases]()，选择需要的版本下载，引入自己的项目。
+访问 [https://github.com/latel/logline/releases](https://github.com/latel/logline/releases)，选择需要的版本下载，引入自己的项目。
 
 
 ### 2. 引入脚本
