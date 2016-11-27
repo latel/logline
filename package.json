@@ -44,13 +44,10 @@
     "gulp-compile-handlebars": "^0.6.1",
     "gulp-rename": "^1.2.2",
     "html-loader": "^0.4.3",
-    "jsdom": "^9.2.1",
-    "json-loader": "^0.5.4",
     "minimist": "^1.2.0",
     "mocha": "^2.5.3",
     "mocha-phantomjs-core": "^2.1.0",
     "moment": "^2.13.0",
-    "node-storage-shim": "^1.0.1",
     "webpack": "~1.12.11"
   }
 }
