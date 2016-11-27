@@ -3,7 +3,7 @@ Logline
 
 [![Build Status][travis-image]][travis-url]
 
-logline是一个轻量，实用和客户端级的前端客户端日志记录工具。
+logline是一个轻量，实用和客户端级的前端日志记录工具。
 
 
 为何前端定位问题很困难
