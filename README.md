@@ -45,7 +45,15 @@ logline是一个轻量，实用和客户端级的前端客户端日志记录工�
 
 ### 1. 安装
 
+#### 通过bower
+
+``` shell
+bower install logline
+```
+
+#### 直接下载
 访问 [https://github.com/latel/logline/releases]()，选择需要的版本下载，引入自己的项目。
+
 
 ### 2. 引入脚本
 
@@ -83,11 +91,6 @@ Logline.using(Logline.PROTOCOL.WEBSQL);
 如果 indexeddb 协议可用，那么indexeddb将作为自动选择的协议。
 如果 indexeddb 协议不可用但是 websql 协议可用，那么将选择 websql 协议，如此类推。
 如果最后发现所有的协议都不可用，将会抛出错误。
-
-``` javascript
-Logline.using(Logline.PROTOCOL.WEBSQL);
-
-```
 
 ### 4. 记录日志
 
@@ -131,14 +134,14 @@ Logline.clean(); // 清空日志并删除数据库
 
 ### 7. 自定义数据库名
 
-由于 indexeddb, websql 和 localStorage 都是同域共享的，这时候 Logline 默认的数据库名 logline 可能会已经被占用，需要指定一个新的数据名。
+由于 indexeddb, websql 和 localStorage 都是同域共享的，这时候 Logline 默认的数据库名 logline 可能会已经被占用，需要指定一个新的数据库名。
 可以通过下面2个方法指定数据库名。
 
 ``` javascript
 // 调用`using`时，同时指定第二个参数作为数据库名
 Logline.using(Logline.PROTOCOL.WEBSQL, 'newlogline');
 
-// 调用`databse`来指定数据库名
+// 调用`database`来指定数据库名
 Logline.database('newlogline');
 ```
 

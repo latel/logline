@@ -1,9 +1,10 @@
 WIP
 [ ] 不使用 webpack 编译，以减小打包文件的大小
-[ ] 加入 bower 包管理器
+[√] 加入 bower 包管理器
 [ ] 丰富英文代码注释
 [ ] 完善错误处理细节
 [ ] 测试环境由jsdom迁移至phantomjs
+[ ] 修复Indexeddb协议在高频存储的情况下会出错
 [ ] 优化存取结构
 
 CONSIDERING
