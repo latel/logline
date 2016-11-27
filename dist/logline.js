@@ -255,20 +255,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            var transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
 	            transaction.onerror = function (event) {
-	                return util.throwError(event.target.errorCode);
+	                return util.throwError(event.target.error);
 	            };
 
 	            var store = transaction.objectStore('logs');
 	            var request = store.add({
-	                timestamp: Date.now(),
+	                time: Date.now(),
 	                namespace: this._namesapce,
 	                descriptor: descriptor,
 	                data: data
 	            });
 
 	            request.onerror = function (event) {
-	                IndexedDBLogger.status = _get(IndexedDBLogger.prototype.__proto__ || Object.getPrototypeOf(IndexedDBLogger.prototype), 'STATUS', _this2).FAILED;
-	                util.throwError(event.target.errorCode);
+	                IndexedDBLogger.status = _interface2.default.STATUS.FAILED;
+	                util.throwError(event.target.error);
 	            };
 	        }
 	    }], [{
@@ -294,13 +294,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                IndexedDBLogger._pool.consume();
 	                // globally handle db request errors
 	                IndexedDBLogger.db.onerror = function (event) {
-	                    return util.throwError(event.target.errorCode);
+	                    return util.throwError(event.target.error);
 	                };
 	            };
 	            IndexedDBLogger.request.onupgradeneeded = function (event) {
 	                // init dabasebase
 	                var db = event.target.result,
-	                    store = db.createObjectStore('logs', { keyPath: 'timestamp' });
+	                    store = db.createObjectStore('logs', { autoIncrement: true });
 	                store.createIndex('namespace', 'namespace', { unique: false });
 	                store.createIndex('level', 'level', { unique: false });
 	                store.createIndex('descriptor', 'descriptor', { unique: false });
@@ -321,17 +321,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	                request = store.openCursor(),
 	                logs = [];
 
+	            console && console.log('<<------------------------------');
 	            request.onsuccess = function (event) {
 	                var cursor = event.target.result;
+	                console && console.log(cursor);
 	                if (cursor) {
 	                    logs.push({
-	                        timestamp: cursor.value.timestamp,
+	                        time: cursor.value.time,
 	                        namespace: cursor.value.namespace,
 	                        descriptor: cursor.value.descriptor,
 	                        data: cursor.value.data
 	                    });
+	                    console && console && console.log('--------------------------');
 	                    cursor.continue();
 	                } else {
+	                    console && console && console.log('-------------------------->>');
 	                    readyFn(logs);
 	                }
 	            };
@@ -353,7 +357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
 	            if (!daysToMaintain) {
 	                var request = store.clear().onerror = function (event) {
-	                    return util.throwError(event.target.errorCode);
+	                    return util.throwError(event.target.error);
 	                };
 	            } else {
 	                var range = IDBKeyRange.upperBound(Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000, true);
@@ -384,7 +388,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            IndexedDBLogger.db.close();
 	            var request = window.indexedDB.deleteDatabase(IndexedDBLogger._database);
 	            request.onerror = function (event) {
-	                return util.throwError(event.target.errorCode);
+	                return util.throwError(event.target.error);
 	            };
 	            /* eslint no-unused-vars: "off" */
 	            request.onsuccess = function (event) {
@@ -398,7 +402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (IndexedDBLogger.db) {
 	                var transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE || 'readwrite');
 	                transaction.onerror = function (event) {
-	                    return util.throwError(event.target.errorCode);
+	                    return util.throwError(event.target.error);
 	                };
 	                return transaction.objectStore('logs');
 	            } else {
@@ -653,7 +657,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            try {
 	                WebsqlLogger._db.transaction(function (tx) {
 	                    tx.executeSql('INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)', [Date.now(), _this2._namesapce, level, descriptor, data === undefined || data === '' ? '' : JSON.stringify(data) || ''], function () {/* empty func */}, function (tx, e) {
-	                        throw e;
+	                        throw e.message;
 	                    });
 	                });
 	            } catch (e) {
@@ -699,15 +703,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            try {
 	                WebsqlLogger._db.transaction(function (tx) {
-	                    tx.executeSql('SELECT * FROM logs', [], function (tx, res) {
+	                    tx.executeSql('SELECT * FROM logs ORDER BY time DESC', [], function (tx, res) {
 	                        var logs = [],
+	                            line,
 	                            index = res.rows.length;
 	                        while (--index >= 0) {
-	                            logs.push(res.rows.item(index));
+	                            line = res.rows.item(index);
+	                            // in some devices, properties are configureable: false, writable: false
+	                            line = Object.create(line, {
+	                                data: {
+	                                    value: JSON.parse(line.data)
+	                                }
+	                            });
+	                            logs.push(line);
 	                        }
 	                        readyFn(logs);
 	                    }, function (tx, e) {
-	                        throw e;
+	                        throw e.message;
 	                    });
 	                });
 	            } catch (e) {
@@ -728,11 +740,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                WebsqlLogger._db.transaction(function (tx) {
 	                    if (daysToMaintain) {
 	                        tx.executeSql('DELETE FROM logs WHERE time < ?', [Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000], function () {/* empty func */}, function (tx, e) {
-	                            throw e;
+	                            throw e.message;
 	                        });
 	                    } else {
 	                        tx.executeSql('DELETE FROM logs', [], function () {/* empty func */}, function (tx, e) {
-	                            throw e;
+	                            throw e.message;
 	                        });
 	                    }
 	                });
@@ -752,10 +764,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            try {
 	                WebsqlLogger._db.transaction(function (tx) {
-	                    tx.executeSql('DROP TABLE logss', [], function () {
+	                    tx.executeSql('DROP TABLE logs', [], function () {
 	                        delete WebsqlLogger.status;
 	                    }, function (tx, e) {
-	                        throw e;
+	                        throw e.message;
 	                    });
 	                });
 	            } catch (e) {
