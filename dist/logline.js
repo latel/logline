@@ -708,13 +708,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            line,
 	                            index = res.rows.length;
 	                        while (--index >= 0) {
-	                            line = res.rows.item(index);
 	                            // in some devices, properties are configureable: false, writable: false
-	                            line = Object.create(line, {
-	                                data: {
-	                                    value: JSON.parse(line.data)
-	                                }
-	                            });
+	                            // we need deep copy
+	                            line = JSON.parse(JSON.stringify(res.rows.item(index)));
+	                            line.data = JSON.parse(line.data);
 	                            logs.push(line);
 	                        }
 	                        readyFn(logs);
