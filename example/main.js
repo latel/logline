@@ -14,17 +14,17 @@ function test(protocol) {
     Logline.using(Logline.PROTOCOL[protocol.toUpperCase()]);
 
     document.querySelector('#add').addEventListener('click', function () {
-        var forms = new FormData(document.forms.namedItem("form"));
-        if (!forms.get('namespace')) {
+        var form = document.forms.namedItem("form");
+        if (!form.namespace.value) {
             alert('模块名不可为空');
             return false;
         }
-        if (!forms.get('descriptor')) {
+        if (!form.descriptor.value) {
             alert('描述符不可为空');
             return false;
         }
-        var log = new Logline(forms.get('namespace'));
-        log[forms.get('level')](forms.get('descriptor'), forms.get('data'));
+        var log = new Logline(form.namespace.value);
+        log[form.level.value](form.descriptor.value, form.data.value);
     });
 
     document.querySelector('#keep').addEventListener('click', function () {
