@@ -1,4 +1,14 @@
 function test(protocol) {
+
+    var values = Object.values || function(obj) {
+        var i, values = [];
+        for (i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                values.push(obj[i]);
+            }
+        }
+    };
+
     if (!Logline) {
         document.querySelector('h1').innerHTML = 'Logline is not been properly built.';
         document.querySelector('h1').style.color = 'red';
@@ -45,7 +55,7 @@ function test(protocol) {
                 var html = '',
                     i;
                 for (i = 0; i < logs.length; i++) {
-                    html += Object.values(logs[i]).join('\t') + '<br/>';
+                    html += values(logs[i]).join('\t') + '<br/>';
                 }
                 document.querySelector('article').innerHTML = html;
             });
