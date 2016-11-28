@@ -7,6 +7,7 @@ function test(protocol) {
                 values.push(obj[i]);
             }
         }
+        return values;
     };
 
     if (!Logline) {
