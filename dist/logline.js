@@ -246,10 +246,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _record(level, descriptor, data) {
 	            var _this2 = this;
 
-	            if (IndexedDBLogger.status === _interface2.default.STATUS.INITING) {
+	            if (IndexedDBLogger.status !== _interface2.default.STATUS.INITED) {
 	                IndexedDBLogger._pool.push(function () {
 	                    _this2._record(level, descriptor, data);
 	                });
+	                if (IndexedDBLogger.status !== _interface2.default.STATUS.INITING) {
+	                    IndexedDBLogger.init();
+	                }
 	                return;
 	            }
 
@@ -280,11 +283,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError('your platform does not support indexeddb protocol.');
 	            }
 
-	            IndexedDBLogger._pool = new _pool2.default();
+	            if (IndexedDBLogger.status) {
+	                return false;
+	            }
+
+	            IndexedDBLogger._pool = IndexedDBLogger._pool || new _pool2.default();
 	            IndexedDBLogger._database = database || 'logline';
 	            IndexedDBLogger.status = _get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITING;
 
-	            IndexedDBLogger.request = window.indexedDB.open(database);
+	            IndexedDBLogger.request = window.indexedDB.open(IndexedDBLogger._database);
 	            IndexedDBLogger.request.onerror = function (event) {
 	                return util.throwError('protocol indexeddb is prevented.');
 	            };
@@ -310,7 +317,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'all',
 	        value: function all(readyFn) {
-	            if (IndexedDBLogger.status === _get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITING) {
+	            if (IndexedDBLogger.status !== _get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
 	                IndexedDBLogger._pool.push(function () {
 	                    IndexedDBLogger.all(readyFn);
 	                });
@@ -321,7 +328,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                request = store.openCursor(),
 	                logs = [];
 
-	            console && console.log('<<------------------------------');
 	            request.onsuccess = function (event) {
 	                var cursor = event.target.result;
 	                console && console.log(cursor);
@@ -332,10 +338,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        descriptor: cursor.value.descriptor,
 	                        data: cursor.value.data
 	                    });
-	                    console && console && console.log('--------------------------');
 	                    cursor.continue();
 	                } else {
-	                    console && console && console.log('-------------------------->>');
 	                    readyFn(logs);
 	                }
 	            };
@@ -347,7 +351,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'keep',
 	        value: function keep(daysToMaintain) {
-	            if (IndexedDBLogger.status === _get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITING) {
+	            if (IndexedDBLogger.status !== _get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
 	                IndexedDBLogger._pool.push(function () {
 	                    IndexedDBLogger.keep(daysToMaintain);
 	                });
@@ -377,7 +381,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'clean',
 	        value: function clean() {
-	            if (IndexedDBLogger.status === _get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITING) {
+	            if (IndexedDBLogger.status !== _get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
 	                IndexedDBLogger._pool.push(function () {
 	                    IndexedDBLogger.clean();
 	                });
@@ -647,10 +651,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _record(level, descriptor, data) {
 	            var _this2 = this;
 
-	            if (WebsqlLogger.status === _interface2.default.STATUS.INITING) {
+	            if (WebsqlLogger.status !== _interface2.default.STATUS.INITED) {
 	                WebsqlLogger._pool.push(function () {
 	                    _this2._record(level, descriptor, data);
 	                });
+	                if (WebsqlLogger.status !== _interface2.default.STATUS.INITING) {
+	                    WebsqlLogger.init();
+	                }
 	                return;
 	            }
 
@@ -673,7 +680,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError(new Error('your platform does not support websql protocol.'));
 	            }
 
-	            WebsqlLogger._pool = new _pool2.default();
+	            if (WebsqlLogger.status) {
+	                return false;
+	            }
+
+	            WebsqlLogger._pool = WebsqlLogger._pool || new _pool2.default();
 	            WebsqlLogger._database = database || 'logline';
 	            WebsqlLogger.status = _get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITING;
 
@@ -694,7 +705,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'all',
 	        value: function all(readyFn) {
-	            if (WebsqlLogger.status === _get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITING) {
+	            if (WebsqlLogger.status !== _get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
 	                WebsqlLogger._pool.push(function () {
 	                    WebsqlLogger.all(readyFn);
 	                });
@@ -726,7 +737,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'keep',
 	        value: function keep(daysToMaintain) {
-	            if (WebsqlLogger.status === _get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITING) {
+	            if (WebsqlLogger.status !== _get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
 	                WebsqlLogger._pool.push(function () {
 	                    WebsqlLogger.keep(daysToMaintain);
 	                });
@@ -752,7 +763,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'clean',
 	        value: function clean() {
-	            if (WebsqlLogger.status === _get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITING) {
+	            if (WebsqlLogger.status !== _get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
 	                WebsqlLogger._pool.push(function () {
 	                    WebsqlLogger.clean();
 	                });
@@ -873,6 +884,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'clean',
 	        value: function clean() {
+	            delete LocalStorageLogger.status;
 	            window.localStorage.removeItem(LocalStorageLogger._database);
 	        }
 	    }]);

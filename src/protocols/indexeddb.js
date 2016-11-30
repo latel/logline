@@ -8,10 +8,13 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     _record(level, descriptor, data) {
-        if (IndexedDBLogger.status === LoggerInterface.STATUS.INITING) {
+        if (IndexedDBLogger.status !== LoggerInterface.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
                 this._record(level, descriptor, data);
             });
+            if (IndexedDBLogger.status !== LoggerInterface.STATUS.INITING) {
+                IndexedDBLogger.init();
+            }
             return;
         }
 
@@ -37,11 +40,15 @@ export default class IndexedDBLogger extends LoggerInterface {
             util.throwError('your platform does not support indexeddb protocol.');
         }
 
-        IndexedDBLogger._pool = new Pool();
+        if (IndexedDBLogger.status) {
+            return false;
+        }
+
+        IndexedDBLogger._pool = IndexedDBLogger._pool || new Pool();
         IndexedDBLogger._database = database || 'logline';
         IndexedDBLogger.status = super.STATUS.INITING;
 
-        IndexedDBLogger.request = window.indexedDB.open(database);
+        IndexedDBLogger.request = window.indexedDB.open(IndexedDBLogger._database);
         IndexedDBLogger.request.onerror = event => util.throwError('protocol indexeddb is prevented.');
         IndexedDBLogger.request.onsuccess = event => {
             IndexedDBLogger.db = event.target.result;
@@ -61,7 +68,7 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     static all(readyFn) {
-        if (IndexedDBLogger.status === super.STATUS.INITING) {
+        if (IndexedDBLogger.status !== super.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
                 IndexedDBLogger.all(readyFn);
             });
@@ -72,7 +79,6 @@ export default class IndexedDBLogger extends LoggerInterface {
             request = store.openCursor(),
             logs = [];
 
-        console && console.log('<<------------------------------');
         request.onsuccess = event => {
             var cursor = event.target.result;
             console && console.log(cursor);
@@ -83,11 +89,9 @@ export default class IndexedDBLogger extends LoggerInterface {
                     descriptor: cursor.value.descriptor,
                     data: cursor.value.data
                 });
-                console && console && console.log('--------------------------');
                 cursor.continue();
             }
             else {
-                console && console && console.log('-------------------------->>');
                 readyFn(logs);
             }
         };
@@ -96,7 +100,7 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     static keep(daysToMaintain) {
-        if (IndexedDBLogger.status === super.STATUS.INITING) {
+        if (IndexedDBLogger.status !== super.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
                 IndexedDBLogger.keep(daysToMaintain);
             });
@@ -122,7 +126,7 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     static clean() {
-        if (IndexedDBLogger.status === super.STATUS.INITING) {
+        if (IndexedDBLogger.status !== super.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
                 IndexedDBLogger.clean();
             });
