@@ -43,6 +43,7 @@ export default class LocalStorageLogger extends LoggerInterface {
     }
 
     static clean() {
+        delete LocalStorageLogger.status;
         window.localStorage.removeItem(LocalStorageLogger._database);
     }
 }

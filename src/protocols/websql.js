@@ -8,10 +8,13 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     _record(level, descriptor, data) {
-        if (WebsqlLogger.status === LoggerInterface.STATUS.INITING) {
+        if (WebsqlLogger.status !== LoggerInterface.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
                 this._record(level, descriptor, data);
             });
+            if (WebsqlLogger.status !== LoggerInterface.STATUS.INITING) {
+                WebsqlLogger.init();
+            }
             return;
         }
 
@@ -32,7 +35,11 @@ export default class WebsqlLogger extends LoggerInterface {
             util.throwError(new Error('your platform does not support websql protocol.'));
         }
 
-        WebsqlLogger._pool = new Pool();
+        if (WebsqlLogger.status) {
+            return false;
+        }
+
+        WebsqlLogger._pool = WebsqlLogger._pool || new Pool();
         WebsqlLogger._database = database || 'logline';
         WebsqlLogger.status = super.STATUS.INITING;
 
@@ -54,7 +61,7 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     static all(readyFn) {
-        if (WebsqlLogger.status === super.STATUS.INITING) {
+        if (WebsqlLogger.status !== super.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
                 WebsqlLogger.all(readyFn);
             });
@@ -83,7 +90,7 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     static keep(daysToMaintain) {
-        if (WebsqlLogger.status === super.STATUS.INITING) {
+        if (WebsqlLogger.status !== super.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
                 WebsqlLogger.keep(daysToMaintain);
             });
@@ -112,7 +119,7 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     static clean() {
-        if (WebsqlLogger.status === super.STATUS.INITING) {
+        if (WebsqlLogger.status !== super.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
                 WebsqlLogger.clean();
             });

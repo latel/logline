@@ -44,6 +44,7 @@ function test(protocol) {
 
     document.querySelector('#clean').addEventListener('click', function () {
         Logline.clean();
+        document.querySelector('article').innerHTML = '';
     });
 
     document.querySelector('form').addEventListener('submit', function(ev) {
