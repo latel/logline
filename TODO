@@ -1,10 +1,8 @@
 WIP
-[ ] 不使用 webpack 编译，以减小打包文件的大小
-[√] 加入 bower 包管理器
-[ ] 丰富英文代码注释
-[ ] 完善错误处理细节
-[ ] 测试环境由jsdom迁移至phantomjs
-[ ] 修复Indexeddb协议在高频存储的情况下会出错
-[ ] 优化存取结构
+[ ] 不使用 webpack 编译，以减小打包文件的大小 HIGH
 
 CONSIDERING
+[ ] 完善错误处理细节 LOW
+[ ] 修复phantomjs无法正确测试indexeddb的问题，phantomjs在关闭数据后才能读取到新存储的内容 LOW
+[ ] 添加标记，用于指示当前日志协议是否有未完成或者等待中的异步任务 LOW
+[ ] 允许获取指定时间范围内的日志  NICE TO HAVE

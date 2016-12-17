@@ -2,11 +2,28 @@ import LoggerInterface from './interface';
 import Pool from '../lib/pool';
 import * as util from '../lib/util';
 
+/**
+ * indexedDB日志协议
+ * @class IndexedDBLogger
+ */
 export default class IndexedDBLogger extends LoggerInterface {
+    /**
+     * 构造函数
+     * @constructor
+     * @param {String} namespace - 日志的命名空间
+     */
     constructor(...args) {
         super(...args);
     }
 
+    /**
+     * 添加一条日志记录
+     * @method _reocrd
+     * @private
+     * @parma {String} level - 日志等级
+     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+     * @param {Mixed} data - 要记录的附加数据
+     */
     _record(level, descriptor, data) {
         if (IndexedDBLogger.status !== LoggerInterface.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
@@ -35,6 +52,12 @@ export default class IndexedDBLogger extends LoggerInterface {
         };
     }
 
+    /**
+     * 初始化协议
+     * @method init
+     * @static
+     * @param {String} database - 初始化时要使用的数据库名
+     */
     static init(database) {
         if (!IndexedDBLogger.support) {
             util.throwError('your platform does not support indexeddb protocol.');
@@ -67,6 +90,12 @@ export default class IndexedDBLogger extends LoggerInterface {
         };
     }
 
+    /**
+     * 读取所有日志内容
+     * @method all
+     * @static
+     * @param {Function} readyFn - 用于读取日志内容的回调函数
+     */
     static all(readyFn) {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
@@ -99,6 +128,12 @@ export default class IndexedDBLogger extends LoggerInterface {
         request.onerror = event => util.throwError('failed to literat on logs from database.');
     }
 
+    /**
+     * 清理日志
+     * @method keep
+     * @static
+     * @param {Number} daysToMaintain - 保留多少天数的日志
+     */
     static keep(daysToMaintain) {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
@@ -125,6 +160,11 @@ export default class IndexedDBLogger extends LoggerInterface {
         }
     }
 
+    /**
+     * 删除日志数据库
+     * @method clean
+     * @static
+     */
     static clean() {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
@@ -144,6 +184,14 @@ export default class IndexedDBLogger extends LoggerInterface {
         };
     }
 
+    /**
+     * 获取事务存储过程
+     * @method _getTransactionStore
+     * @private
+     * @static
+     * @param {String} mode - 事务过程的参数
+     * @return {Object} 实物存储过程
+     */
     static _getTransactionStore(mode) {
         if (IndexedDBLogger.db) {
             let transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE || 'readwrite');
@@ -154,6 +202,12 @@ export default class IndexedDBLogger extends LoggerInterface {
             util.throwError('log database is not created or connections is closed, considering init it.');
         }
     }
-}
 
-IndexedDBLogger.support = !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
+    /**
+     * 是否支持indexedDB
+     * @prop {Boolean} support
+     */
+    static get support() {
+        return !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
+    }
+}
