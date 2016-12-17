@@ -1,5 +1,5 @@
 V1.0.3
-F 通过引入队列，修复indexeddb在高频存储调用过程中会报错的问题（因为唯一keypath timestamp会重复）
+F indexDB使用自增键作为主键，修复在高频存储调用过程中会报错的问题（因为唯一keypath timestamp可能会重复）
 U 优化了localStorage协议的存储结构，节省空间
 
 V1.0.2
