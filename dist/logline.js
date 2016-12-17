@@ -1,5 +1,5 @@
 /*!
- * logline v1.0.2 (https://github.com/latel/logline#readme)
+ * logline v1.0.3 (https://github.com/latel/logline#readme)
  * Copyright 2016, latel <latelx64@gmail.com>
  * MIT license
  */
