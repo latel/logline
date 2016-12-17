@@ -226,9 +226,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+	/**
+	 * indexedDB日志协议
+	 * @class IndexedDBLogger
+	 */
 	var IndexedDBLogger = function (_LoggerInterface) {
 	    _inherits(IndexedDBLogger, _LoggerInterface);
 
+	    /**
+	     * 构造函数
+	     * @constructor
+	     * @param {String} namespace - 日志的命名空间
+	     */
 	    function IndexedDBLogger() {
 	        var _ref;
 
@@ -240,6 +249,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        return _possibleConstructorReturn(this, (_ref = IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger)).call.apply(_ref, [this].concat(args)));
 	    }
+
+	    /**
+	     * 添加一条日志记录
+	     * @method _reocrd
+	     * @private
+	     * @parma {String} level - 日志等级
+	     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+	     * @param {Mixed} data - 要记录的附加数据
+	     */
+
 
 	    _createClass(IndexedDBLogger, [{
 	        key: '_record',
@@ -274,6 +293,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError(event.target.error);
 	            };
 	        }
+
+	        /**
+	         * 初始化协议
+	         * @method init
+	         * @static
+	         * @param {String} database - 初始化时要使用的数据库名
+	         */
+
 	    }], [{
 	        key: 'init',
 	        value: function init(database) {
@@ -314,6 +341,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                store.createIndex('data', 'data', { unique: false });
 	            };
 	        }
+
+	        /**
+	         * 读取所有日志内容
+	         * @method all
+	         * @static
+	         * @param {Function} readyFn - 用于读取日志内容的回调函数
+	         */
+
 	    }, {
 	        key: 'all',
 	        value: function all(readyFn) {
@@ -348,6 +383,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return util.throwError('failed to literat on logs from database.');
 	            };
 	        }
+
+	        /**
+	         * 清理日志
+	         * @method keep
+	         * @static
+	         * @param {Number} daysToMaintain - 保留多少天数的日志
+	         */
+
 	    }, {
 	        key: 'keep',
 	        value: function keep(daysToMaintain) {
@@ -378,6 +421,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                };
 	            }
 	        }
+
+	        /**
+	         * 删除日志数据库
+	         * @method clean
+	         * @static
+	         */
+
 	    }, {
 	        key: 'clean',
 	        value: function clean() {
@@ -400,6 +450,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                delete IndexedDBLogger.db;
 	            };
 	        }
+
+	        /**
+	         * 获取事务存储过程
+	         * @method _getTransactionStore
+	         * @private
+	         * @static
+	         * @param {String} mode - 事务过程的参数
+	         * @return {Object} 实物存储过程
+	         */
+
 	    }, {
 	        key: '_getTransactionStore',
 	        value: function _getTransactionStore(mode) {
@@ -413,15 +473,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError('log database is not created or connections is closed, considering init it.');
 	            }
 	        }
+
+	        /**
+	         * 是否支持indexedDB
+	         * @prop {Boolean} support
+	         */
+
+	    }, {
+	        key: 'support',
+	        get: function get() {
+	            return !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
+	        }
 	    }]);
 
 	    return IndexedDBLogger;
 	}(_interface2.default);
 
 	exports.default = IndexedDBLogger;
-
-
-	IndexedDBLogger.support = !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
 
 /***/ },
 /* 2 */
@@ -443,14 +511,30 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	/**
+	 * 日志协议原型类
+	 * @class Interface
+	 */
 	var Interface = function () {
+	    /**
+	     * 构造函数
+	     * @constructor
+	     * @param {String} namespace - 日志的命名空间
+	     */
 	    function Interface(namespace) {
 	        _classCallCheck(this, Interface);
 
 	        this._namesapce = namespace;
 	    }
 
-	    // 添加一条日志记录
+	    /**
+	     * 添加一条日志记录
+	     * @method _reocrd
+	     * @private
+	     * @parma {String} level - 日志等级
+	     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+	     * @param {Mixed} data - 要记录的附加数据
+	     */
 
 
 	    _createClass(Interface, [{
@@ -459,7 +543,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util.throwError('method _record is not implemented.');
 	        }
 
-	        // 添加一条等级为info的日志记录
+	        /**
+	         * 添加一条等级为info的日志记录
+	         * @method info
+	         * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+	         * @param {Mixed} data - 要记录的附加数据
+	         */
 
 	    }, {
 	        key: 'info',
@@ -471,7 +560,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._record.apply(this, ['info'].concat(args));
 	        }
 
-	        // 添加一条等级为warn的日志记录
+	        /**
+	         * 添加一条等级为warn的日志记录
+	         * @method warn
+	         * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+	         * @param {Mixed} data - 要记录的附加数据
+	         */
 
 	    }, {
 	        key: 'warn',
@@ -483,7 +577,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._record.apply(this, ['warn'].concat(args));
 	        }
 
-	        // 添加一条等级为error的日志记录
+	        /**
+	         * 添加一条等级为error的日志记录
+	         * @method error
+	         * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+	         * @param {Mixed} data - 要记录的附加数据
+	         */
 
 	    }, {
 	        key: 'error',
@@ -495,7 +594,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._record.apply(this, ['error'].concat(args));
 	        }
 
-	        // 添加一条等级为critical的日志记录
+	        /**
+	         * 添加一条等级为critical的日志记录
+	         * @method critical
+	         * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+	         * @param {Mixed} data - 要记录的附加数据
+	         */
 
 	    }, {
 	        key: 'critical',
@@ -506,29 +610,70 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            this._record.apply(this, ['critical'].concat(args));
 	        }
+
+	        /**
+	         * 初始化协议
+	         * @method init
+	         * @static
+	         * @param {String} database - 初始化时要使用的数据库名
+	         */
+
 	    }], [{
 	        key: 'init',
-	        value: function init(readyFn) {
-	            readyFn();
+	        value: function init(database) {
+	            return true;
 	        }
+
+	        /**
+	         * 读取所有日志内容
+	         * @method all
+	         * @static
+	         * @param {Function} readyFn - 用于读取日志内容的回调函数
+	         */
+
 	    }, {
 	        key: 'all',
 	        value: function all(readyFn) {
 	            readyFn([]);
 	        }
+
+	        /**
+	         * 清理日志
+	         * @method keep
+	         * @static
+	         * @param {Number} daysToMaintain - 保留多少天数的日志
+	         */
+
 	    }, {
 	        key: 'keep',
-	        value: function keep() {}
+	        value: function keep(daysToMaintain) {
+	            return true;
+	        }
+
+	        /**
+	         * 删除日志数据库
+	         * @method clean
+	         * @static
+	         */
+
 	    }, {
 	        key: 'clean',
-	        value: function clean() {}
+	        value: function clean() {
+	            return true;
+	        }
+
+	        /**
+	         * 协议状态MAP
+	         * @prop {Object} STATUS
+	         */
+
 	    }, {
 	        key: 'STATUS',
 	        get: function get() {
 	            return {
-	                INITING: 1,
-	                INITED: 2,
-	                FAILED: 4
+	                INITING: 1, // 初始化中
+	                INITED: 2, // 初始化成功
+	                FAILED: 4 // 初始化失败
 	            };
 	        }
 	    }]);
@@ -548,6 +693,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: true
 	});
 	exports.throwError = throwError;
+	// 抛出Error错误，并在错误描述前统一添加'Logline: '
 	function throwError(errMessage) {
 	    throw new Error('Logline: ' + errMessage);
 	}
@@ -566,13 +712,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	// pool for deferred api calling
+	/**
+	 * 队列池，用于异步调用过程的寄存
+	 * @class Pool
+	 */
 	var Pool = function () {
+	    /**
+	     * 队列池构造器
+	     * @constructor
+	     */
 	    function Pool() {
 	        _classCallCheck(this, Pool);
 
 	        this._pool = [];
 	    }
+
+	    /**
+	     * 向队列中添加过程
+	     * @method push
+	     * @param {Function} handler - 过程函数
+	     * @param {Object} context - 过程函数的上下文
+	     */
+
 
 	    _createClass(Pool, [{
 	        key: "push",
@@ -580,6 +741,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            handler.context = context;
 	            this._pool.push(handler);
 	        }
+
+	        /**
+	         * 消费队列
+	         * @method consume
+	         */
+
 	    }, {
 	        key: "consume",
 	        value: function consume() {
@@ -631,9 +798,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+	/**
+	 * websql日志协议
+	 * @class WebsqlLogger
+	 */
 	var WebsqlLogger = function (_LoggerInterface) {
 	    _inherits(WebsqlLogger, _LoggerInterface);
 
+	    /**
+	     * 构造函数
+	     * @constructor
+	     * @param {String} namespace - 日志的命名空间
+	     */
 	    function WebsqlLogger() {
 	        var _ref;
 
@@ -645,6 +821,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        return _possibleConstructorReturn(this, (_ref = WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger)).call.apply(_ref, [this].concat(args)));
 	    }
+
+	    /**
+	     * 添加一条日志记录
+	     * @method _reocrd
+	     * @private
+	     * @parma {String} level - 日志等级
+	     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+	     * @param {Mixed} data - 要记录的附加数据
+	     */
+
 
 	    _createClass(WebsqlLogger, [{
 	        key: '_record',
@@ -671,6 +857,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError('error inserting record');
 	            }
 	        }
+
+	        /**
+	         * 初始化协议
+	         * @method init
+	         * @static
+	         * @param {String} database - 初始化时要使用的数据库名
+	         */
+
 	    }], [{
 	        key: 'init',
 	        value: function init(database) {
@@ -702,6 +896,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError('unable to init log database.');
 	            }
 	        }
+
+	        /**
+	         * 读取所有日志内容
+	         * @method all
+	         * @static
+	         * @param {Function} readyFn - 用于读取日志内容的回调函数
+	         */
+
 	    }, {
 	        key: 'all',
 	        value: function all(readyFn) {
@@ -734,6 +936,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError('unable to collect logs from database.');
 	            }
 	        }
+
+	        /**
+	         * 清理日志
+	         * @method keep
+	         * @static
+	         * @param {Number} daysToMaintain - 保留多少天数的日志
+	         */
+
 	    }, {
 	        key: 'keep',
 	        value: function keep(daysToMaintain) {
@@ -760,6 +970,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError('unable to clean logs from database.');
 	            }
 	        }
+
+	        /**
+	         * 删除日志数据库
+	         * @method clean
+	         * @static
+	         */
+
 	    }, {
 	        key: 'clean',
 	        value: function clean() {
@@ -782,15 +999,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	                util.throwError('unable to clean log database.');
 	            }
 	        }
+
+	        /**
+	         * 是否支持websql
+	         * @prop {Boolean} support
+	         */
+
+	    }, {
+	        key: 'support',
+	        get: function get() {
+	            return 'openDatabase' in window;
+	        }
 	    }]);
 
 	    return WebsqlLogger;
 	}(_interface2.default);
 
 	exports.default = WebsqlLogger;
-
-
-	WebsqlLogger.support = 'openDatabase' in window;
 
 /***/ },
 /* 6 */
@@ -824,9 +1049,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+	/**
+	 * localStorage日志协议
+	 * @class LocalStorageLogger
+	 */
 	var LocalStorageLogger = function (_LoggerInterface) {
 	    _inherits(LocalStorageLogger, _LoggerInterface);
 
+	    /**
+	     * 构造函数
+	     * @constructor
+	     * @param {String} namespace - 日志的命名空间
+	     */
 	    function LocalStorageLogger() {
 	        var _ref;
 
@@ -839,23 +1073,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return _possibleConstructorReturn(this, (_ref = LocalStorageLogger.__proto__ || Object.getPrototypeOf(LocalStorageLogger)).call.apply(_ref, [this].concat(args)));
 	    }
 
+	    /**
+	     * 添加一条日志记录
+	     * @method _reocrd
+	     * @private
+	     * @parma {String} level - 日志等级
+	     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+	     * @param {Mixed} data - 要记录的附加数据
+	     */
+
+
 	    _createClass(LocalStorageLogger, [{
 	        key: '_record',
 	        value: function _record(level, descriptor, data) {
 	            var logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
-	            logs.push({
-	                time: Date.now(),
-	                namespace: this._namesapce,
-	                level: level,
-	                descriptor: descriptor,
-	                data: data
-	            });
+	            logs.push([Date.now(), this._namesapce, level, descriptor, data]);
 	            try {
 	                window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
 	            } catch (e) {
 	                util.throwError('error inserting record');
 	            }
 	        }
+
+	        /**
+	         * 初始化协议
+	         * @method init
+	         * @static
+	         * @param {String} database - 初始化时要使用的数据库名
+	         */
+
 	    }], [{
 	        key: 'init',
 	        value: function init(database) {
@@ -868,11 +1114,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            LocalStorageLogger.status = _get(LocalStorageLogger.__proto__ || Object.getPrototypeOf(LocalStorageLogger), 'STATUS', this).INITED;
 	        }
+
+	        /**
+	         * 读取所有日志内容
+	         * @method all
+	         * @static
+	         * @param {Function} readyFn - 用于读取日志内容的回调函数
+	         */
+
 	    }, {
 	        key: 'all',
 	        value: function all(readyFn) {
-	            readyFn(JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)));
+	            var logs = JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)),
+	                i;
+	            for (i = 0; i < logs.length; i++) {
+	                logs[i] = {
+	                    time: logs[i][0],
+	                    namespace: logs[i][1],
+	                    level: logs[i][2],
+	                    descriptor: logs[i][3],
+	                    data: logs[i][4]
+	                };
+	            }
+	            readyFn(logs);
 	        }
+
+	        /**
+	         * 清理日志
+	         * @method keep
+	         * @static
+	         * @param {Number} daysToMaintain - 保留多少天数的日志
+	         */
+
 	    }, {
 	        key: 'keep',
 	        value: function keep(daysToMaintain) {
@@ -881,11 +1154,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	            window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
 	        }
+
+	        /**
+	         * 删除日志数据库
+	         * @method clean
+	         * @static
+	         */
+
 	    }, {
 	        key: 'clean',
 	        value: function clean() {
 	            delete LocalStorageLogger.status;
 	            window.localStorage.removeItem(LocalStorageLogger._database);
+	        }
+
+	        /**
+	         * 是否支持localStorage
+	         * @prop {Boolean} support
+	         */
+
+	    }, {
+	        key: 'support',
+	        get: function get() {
+	            return 'localStorage' in window;
 	        }
 	    }]);
 
@@ -893,9 +1184,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(_interface2.default);
 
 	exports.default = LocalStorageLogger;
-
-
-	_interface2.default.support = 'localStorage' in window;
 
 /***/ }
 /******/ ])

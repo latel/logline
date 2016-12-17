@@ -2,11 +2,28 @@ import LoggerInterface from './interface';
 import Pool from '../lib/pool';
 import * as util from '../lib/util';
 
+/**
+ * websql日志协议
+ * @class WebsqlLogger
+ */
 export default class WebsqlLogger extends LoggerInterface {
+    /**
+     * 构造函数
+     * @constructor
+     * @param {String} namespace - 日志的命名空间
+     */
     constructor(...args) {
         super(...args);
     }
 
+    /**
+     * 添加一条日志记录
+     * @method _reocrd
+     * @private
+     * @parma {String} level - 日志等级
+     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
+     * @param {Mixed} data - 要记录的附加数据
+     */
     _record(level, descriptor, data) {
         if (WebsqlLogger.status !== LoggerInterface.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
@@ -30,6 +47,12 @@ export default class WebsqlLogger extends LoggerInterface {
         } catch (e) { util.throwError('error inserting record'); }
     }
 
+    /**
+     * 初始化协议
+     * @method init
+     * @static
+     * @param {String} database - 初始化时要使用的数据库名
+     */
     static init(database) {
         if (!WebsqlLogger.support) {
             util.throwError(new Error('your platform does not support websql protocol.'));
@@ -60,6 +83,12 @@ export default class WebsqlLogger extends LoggerInterface {
         } catch (e) { util.throwError('unable to init log database.'); }
     }
 
+    /**
+     * 读取所有日志内容
+     * @method all
+     * @static
+     * @param {Function} readyFn - 用于读取日志内容的回调函数
+     */
     static all(readyFn) {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
@@ -89,6 +118,12 @@ export default class WebsqlLogger extends LoggerInterface {
         } catch (e) { util.throwError('unable to collect logs from database.'); }
     }
 
+    /**
+     * 清理日志
+     * @method keep
+     * @static
+     * @param {Number} daysToMaintain - 保留多少天数的日志
+     */
     static keep(daysToMaintain) {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
@@ -118,6 +153,11 @@ export default class WebsqlLogger extends LoggerInterface {
         } catch (e) { util.throwError('unable to clean logs from database.'); }
     }
 
+    /**
+     * 删除日志数据库
+     * @method clean
+     * @static
+     */
     static clean() {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
@@ -138,6 +178,12 @@ export default class WebsqlLogger extends LoggerInterface {
             });
         } catch (e) { util.throwError('unable to clean log database.'); }
     }
-}
 
-WebsqlLogger.support = 'openDatabase' in window;
+    /**
+     * 是否支持websql
+     * @prop {Boolean} support
+     */
+    static get support() {
+        return 'openDatabase' in window;
+    }
+}
