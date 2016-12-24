@@ -62,10 +62,6 @@ Logline 支持直接使用 script 标签引用，也支持 AMD 模块加载器.
 ``` javascript
 // Script标签引入方式
 <script src="./mod/logline.min.js"></script>
-<script>
-	// 使用indexedDB协议
-	Logline.using(Logline.PROTOCOL.INDEXEDDB);
-</script>
 
 // AMD模块方式
 var Logline = require('./mod/logline.min');
