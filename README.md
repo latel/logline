@@ -1,7 +1,7 @@
 Logline
 =======
 
-English | [中文](https://github.com/latel/logline/README.zh_CN.md 中文说明)
+English | [中文](https://github.com/latel/logline/blob/master/README.zh_CN.md 中文说明)
 
 [![Build Status][travis-image]][travis-url]
 
@@ -86,9 +86,9 @@ Logline.using(Logline.PROTOCOL.WEBSQL);
 
 ***If you call Logline related APIs, without specialfy a protocol in advance***, Logline will choose a available protocol automatically, respect the priority according to the configuration parameters during the compile.
 
-such as, your compile command is `npm run configure -- --with-indexeddb --with-websql --with-localstorage`,   
-if protocol indexeddb is available, then indexeddb protocol with be chosen automatically,  
-otherwise, if indexeddb protocol is not available and websql protocol is available, then websql protocol will be chosen, and so on.   
+such as, your compile command is `npm run configure -- --with-indexeddb --with-websql --with-localstorage`,
+if protocol indexeddb is available, then indexeddb protocol with be chosen automatically,
+otherwise, if indexeddb protocol is not available and websql protocol is available, then websql protocol will be chosen, and so on.
 
 If none of the compiled protocols are available, an error will be thrown.
 
