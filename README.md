@@ -1,7 +1,7 @@
 Logline
 =======
 
-English | [中文](https://github.com/latel/logline/blob/master/README.zh_CN.md 中文说明)
+English | [中文](https://github.com/latel/logline/blob/master/README.zh_CN.md)
 
 [![Build Status][travis-image]][travis-url]
 
