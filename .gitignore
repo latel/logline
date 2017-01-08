@@ -7,6 +7,8 @@ bower_components
 
 # editors
 .vscode
+.swp
+.swo
 
 # system
 .DS_Store
