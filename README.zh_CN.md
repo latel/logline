@@ -58,6 +58,7 @@ bower install logline
 ### 2. 引入脚本
 
 Logline 支持直接使用 script 标签引用，也支持 AMD 模块加载器.
+CMD是邪恶并且不被支持的，如果你真的需要请自己再包装一下。
 
 ``` javascript
 // Script标签引入方式
