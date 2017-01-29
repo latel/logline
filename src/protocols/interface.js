@@ -1,119 +1,155 @@
 import * as util from '../lib/util';
 
 /**
- * 日志协议原型类
+ * Logline Interface
  * @class Interface
  */
 export default class Interface {
     /**
-     * 构造函数
+     * Logline constructor
      * @constructor
-     * @param {String} namespace - 日志的命名空间
+     * @param {String} namespace - namespace to use
      */
     constructor(namespace) {
         this._namesapce = namespace;
     }
 
     /**
-     * 添加一条日志记录
+     * add a log record
      * @method _reocrd
      * @private
-     * @parma {String} level - 日志等级
-     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
-     * @param {Mixed} data - 要记录的附加数据
+     * @parma {String} level - log level
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
      */
     _record(level, descriptor, data) {
         util.throwError('method _record is not implemented.');
     }
 
     /**
-     * 添加一条等级为info的日志记录
+     * add a level-info record
      * @method info
-     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
-     * @param {Mixed} data - 要记录的附加数据
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
      */
     info(...args) {
         this._record('info', ...args);
     }
 
     /**
-     * 添加一条等级为warn的日志记录
+     * add a level-warn record
      * @method warn
-     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
-     * @param {Mixed} data - 要记录的附加数据
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
      */
     warn(...args) {
         this._record('warn', ...args);
     }
 
     /**
-     * 添加一条等级为error的日志记录
+     * add a level-error record
      * @method error
-     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
-     * @param {Mixed} data - 要记录的附加数据
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
      */
     error(...args) {
         this._record('error', ...args);
     }
 
     /**
-     * 添加一条等级为critical的日志记录
+     * add a level-critical record
      * @method critical
-     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
-     * @param {Mixed} data - 要记录的附加数据
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
      */
     critical(...args) {
         this._record('critical', ...args);
     }
 
     /**
-     * 初始化协议
+     * initialize protocol
      * @method init
      * @static
-     * @param {String} database - 初始化时要使用的数据库名
+     * @param {String} database - database name to use
      */
     static init(database) {
         return true;
     }
 
     /**
-     * 读取所有日志内容
+     * transform human readable time string, such as '3d', '.3' and '1.2' into Unix timestamp
+     * the default relative time is Date.now(), if no second parameter is provided
+     * @method transTimeFormat
+     * @static
+     * @param {String} time - time string to transform
+     * @param {Number} [relative] - relative time to compare, default Date.now()
+     * @return {Number|NaN} timestamp transformed
+     */
+    static transTimeFormat(time, relative) {
+        // if falsy value or timestamp already, pass it through directly,
+        if (!time || /^\d{13}$/.test(time)) {
+            return +time;
+        }
+        // incase relative time isn't unix timestamp format,
+        // neither a falsy value which will turned out to be Date.now()
+        if (relative && !/^\d{13}$/.test(relative)) {
+            throw new TypeError('relative time should be standard unix timestamp');
+        }
+
+        return (relative || Date.now()) - time.replace(/d$/, '') * 24 * 3600 * 1000;
+    }
+
+    /**
+     * get logs in range
+     * if from and end is not defined, will fetch full log
+     * @method get
+     * @static
+     * @param {String} from - time from, unix timestamp
+     * @param {String} to - time end, unix timestamp
+     * @param {Function} readyFn - function to call back with logs as parameter
+     */
+    static get(from, to, readyFn) {
+        util.throwError('method get is not implemented.');
+    }
+
+    /**
+     * read all logs
      * @method all
      * @static
-     * @param {Function} readyFn - 用于读取日志内容的回调函数
+     * @param {Function} readyFn - function to call back with logs as parameter
      */
     static all(readyFn) {
-        readyFn([]);
+        Interface.get(readyFn);
     }
 
     /**
-     * 清理日志
+     * clean logs = keep limited logs
      * @method keep
      * @static
-     * @param {Number} daysToMaintain - 保留多少天数的日志
+     * @param {Number} daysToMaintain - keep logs within days
      */
     static keep(daysToMaintain) {
-        return true;
+        util.throwError('method keep is not implemented.');
     }
 
     /**
-     * 删除日志数据库
+     * delete log database
      * @method clean
      * @static
      */
     static clean() {
-        return true;
+        util.throwError('method clean is not implemented.');
     }
 
     /**
-     * 协议状态MAP
+     * protocol status map
      * @prop {Object} STATUS
      */
     static get STATUS() {
         return {
-            INITING: 1, // 初始化中
-            INITED: 2, // 初始化成功
-            FAILED: 4 // 初始化失败
+            INITING: 1,
+            INITED: 2,
+            FAILED: 4
         };
     }
 }

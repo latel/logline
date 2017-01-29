@@ -118,7 +118,18 @@ sdkLog.critical('system.vanish', {
 
 ### 5. Read logs
 ``` javascript
-Logline.getAll(function(logs) {
+// collect all logs
+Logline.all(function(logs) {
+    // process logs here
+});
+
+// collet logs within .3 days
+Logline.get('.3d', function(logs) {
+    // process logs here
+});
+
+// collect logs from 3 days before, and earlier than 1 days ago
+Logline.get('3d', '1d', function(logs) {
     // process logs here
 });
 ```
@@ -161,10 +172,14 @@ FAQ
 ---
 
 ### How to upload logs
-since v1.0.1, log upload ability is removed, as the upload procedures varies upon different projects, and we do hope Logline to focus on log recording and maintenance. Anyway, you can still use `Logline.getAll` to get the logs, and implement your own upload procedure.
+since v1.0.1, log upload ability is removed, as the upload procedures varies upon different projects,
+and we do hope Logline to focus on log recording and maintenance.
+Anyway, you can still use `Logline.all` and `Logline.get` to get the logs,
+and implement your own upload procedure.
 
 ### How to analysis
-As the format Logline provited is standard with good readability, thus you can read the logs in the terminal or certain text editors.
+As the format Logline provited is standard with good readability,
+thus you can read the logs in the terminal or certain text editors.
 
 We still provids [Logline-viewer] to helps you to do so.
 

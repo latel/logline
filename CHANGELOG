@@ -1,7 +1,8 @@
 v1.0.4
 U use rollup.js bundler to reduce dist package size(33% off)
+A add makefile, use make for automatic procedures
 U replace comments in English
-A add get method to get logs in suitable time range
+A add `get` method to get logs in suitable time range, rename `getAll` to `all`
 
 V1.0.3
 F add auto-increase as key of IndexedDB, to fix error when logging in high frequency(old keypath timestamp may repeat)

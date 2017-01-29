@@ -1,6 +1,9 @@
 PATH := node_modules/.bin:$(PATH)
 
-default: clean dev prod test
+default: clean configure dev prod test
+
+configure:
+	npm run configure
 
 dev:
 	npm run build:dev
@@ -13,3 +16,6 @@ test:
 
 clean:
 	@rm -f dist/*
+
+
+.PHONY: default configure dev prod test clean

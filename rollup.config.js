@@ -12,7 +12,7 @@ export default {
     dest: 'dist/' + pkg.name + (process.env.NODE_ENV === 'production' ? '.min' : '') + '.js',
     format: 'umd',
     moduleName: pkg.name.replace(/^\w/, starter => starter.toUpperCase()),
-    sourceMap: true,
+    sourceMap: process.env.NODE_ENV === 'production',
     plugins: [
         babel({
             exclude: 'node_modules/**'

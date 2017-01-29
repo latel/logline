@@ -2,26 +2,26 @@ import LoggerInterface from './interface';
 import * as util from '../lib/util';
 
 /**
- * localStorage日志协议
+ * Localstorage protocol
  * @class LocalStorageLogger
  */
 export default class LocalStorageLogger extends LoggerInterface {
     /**
-     * 构造函数
+     * Localstorage protocol constructor
      * @constructor
-     * @param {String} namespace - 日志的命名空间
+     * @param {String} namespace - namespace to use
      */
     constructor(...args) {
         super(...args);
     }
 
     /**
-     * 添加一条日志记录
+     * add a log record
      * @method _reocrd
      * @private
-     * @parma {String} level - 日志等级
-     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
-     * @param {Mixed} data - 要记录的附加数据
+     * @parma {String} level - log level
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
      */
     _record(level, descriptor, data) {
         var logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
@@ -38,10 +38,10 @@ export default class LocalStorageLogger extends LoggerInterface {
     }
 
     /**
-     * 初始化协议
+     * initialize protocol
      * @method init
      * @static
-     * @param {String} database - 初始化时要使用的数据库名
+     * @param {String} database - database name to use
      */
     static init(database) {
         if (!LocalStorageLogger.support) {
@@ -55,14 +55,25 @@ export default class LocalStorageLogger extends LoggerInterface {
     }
 
     /**
-     * 读取所有日志内容
-     * @method all
+     * get logs in range
+     * if from and end is not defined, will fetch full log
+     * @method get
      * @static
-     * @param {Function} readyFn - 用于读取日志内容的回调函数
+     * @param {String} from - time from, unix time stamp or falsy
+     * @param {String} to - time end, unix time stamp or falsy
+     * @param {Function} readyFn - function to call back with logs as parameter
      */
-    static all(readyFn) {
+    static get(from, to, readyFn) {
         var logs = JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)), i;
+
+        from = LoggerInterface.transTimeFormat(from) || 0;
+        to = LoggerInterface.transTimeFormat(to) || Date.now();
+
         for (i = 0; i < logs.length; i++) {
+            if ((from && logs[i][0] < from) || (to && logs[i][0] > to)) {
+                continue;
+            }
+
             logs[i] = {
                 time: logs[i][0],
                 namespace: logs[i][1],
@@ -75,10 +86,20 @@ export default class LocalStorageLogger extends LoggerInterface {
     }
 
     /**
-     * 清理日志
+     * read all logs
+     * @method all
+     * @static
+     * @param {Function} readyFn - function to call back with logs as parameter
+     */
+    static all(readyFn) {
+        return LocalStorageLogger.get(readyFn);
+    }
+
+    /**
+     * clean logs = keep limited logs
      * @method keep
      * @static
-     * @param {Number} daysToMaintain - 保留多少天数的日志
+     * @param {Number} daysToMaintain - keep logs within days
      */
     static keep(daysToMaintain) {
         var logs = !daysToMaintain ? [] : (window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : []).filter(log => {
@@ -88,7 +109,7 @@ export default class LocalStorageLogger extends LoggerInterface {
     }
 
     /**
-     * 删除日志数据库
+     * delete log database
      * @method clean
      * @static
      */
@@ -98,7 +119,7 @@ export default class LocalStorageLogger extends LoggerInterface {
     }
 
     /**
-     * 是否支持localStorage
+     * detect support situation
      * @prop {Boolean} support
      */
     static get support() {
