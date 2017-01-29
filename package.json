@@ -5,7 +5,7 @@
   "main": "dist/logline.min.js",
   "scripts": {
     "test": "./node_modules/.bin/phantomjs ./node_modules/mocha-phantomjs-core/mocha-phantomjs-core.js test/index.html",
-    "configure": "gulp configure",
+    "configure": "./node_modules/.bin/gulp configure",
     "build:dev": "./node_modules/.bin/rollup -c",
     "build:prod": "NODE_ENV=production ./node_modules/.bin/rollup -c",
     "build": "npm run build:dev && npm run build:prod && npm run test"

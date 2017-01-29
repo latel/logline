@@ -95,13 +95,13 @@ export default class WebsqlLogger extends LoggerInterface {
     static get(from, to, readyFn) {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
-                WebsqlLogger.all(readyFn);
+                WebsqlLogger.get(from, to, readyFn);
             });
             return;
         }
 
-        from = LoggerInterface.transTimeFormat(from) || 0;
-        to = LoggerInterface.transTimeFormat(to) || Date.now();
+        from = LoggerInterface.transTimeFormat(from);
+        to = LoggerInterface.transTimeFormat(to);
 
         try {
             WebsqlLogger._db.transaction(function(tx) {
@@ -129,16 +129,6 @@ export default class WebsqlLogger extends LoggerInterface {
                 );
             });
         } catch (e) { util.throwError('unable to collect logs from database.'); }
-    }
-
-    /**
-     * read all logs
-     * @method all
-     * @static
-     * @param {Function} readyFn - function to call back with logs as parameter
-     */
-    static all(readyFn) {
-        return WebsqlLogger.get(readyFn);
     }
 
     /**

@@ -1,3 +1,4 @@
+import Interface from './protocols/interface';
 import IndexeddbLogger from './protocols/indexeddb';
 import LocalstorageLogger from './protocols/localstorage';
 import WebsqlLogger from './protocols/websql';
@@ -151,10 +152,14 @@ class Logline {
     }
 }
 
+// export protocols for modification and mounting
 Logline.PROTOCOL = {
     INDEXEDDB: IndexeddbLogger,
     LOCALSTORAGE: LocalstorageLogger,
     WEBSQL: WebsqlLogger
 };
+
+// export protocol interface for user custom implements
+Logline.INTERFACE = Object.freeze(Interface);
 
 export default Logline;

@@ -102,13 +102,13 @@ export default class IndexedDBLogger extends LoggerInterface {
     static get(from, to, readyFn) {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
-                IndexedDBLogger.all(readyFn);
+                IndexedDBLogger.get(from, to, readyFn);
             });
             return;
         }
 
-        from = LoggerInterface.transTimeFormat(from) || 0;
-        to = LoggerInterface.transTimeFormat(to) || Date.now();
+        from = LoggerInterface.transTimeFormat(from);
+        to = LoggerInterface.transTimeFormat(to);
 
         let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY || 'readonly'),
             request = store.openCursor(),
@@ -135,16 +135,6 @@ export default class IndexedDBLogger extends LoggerInterface {
         };
 
         request.onerror = event => util.throwError('failed to literat on logs from database.');
-    }
-
-    /**
-     * read all logs
-     * @method all
-     * @static
-     * @param {Function} readyFn - function to call back with logs as parameter
-     */
-    static all(readyFn) {
-        return IndexedDBLogger.get(readyFn);
     }
 
     /**

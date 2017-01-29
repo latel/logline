@@ -113,16 +113,6 @@ export default class Interface {
     }
 
     /**
-     * read all logs
-     * @method all
-     * @static
-     * @param {Function} readyFn - function to call back with logs as parameter
-     */
-    static all(readyFn) {
-        Interface.get(readyFn);
-    }
-
-    /**
      * clean logs = keep limited logs
      * @method keep
      * @static

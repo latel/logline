@@ -66,8 +66,8 @@ export default class LocalStorageLogger extends LoggerInterface {
     static get(from, to, readyFn) {
         var logs = JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)), i;
 
-        from = LoggerInterface.transTimeFormat(from) || 0;
-        to = LoggerInterface.transTimeFormat(to) || Date.now();
+        from = LoggerInterface.transTimeFormat(from);
+        to = LoggerInterface.transTimeFormat(to);
 
         for (i = 0; i < logs.length; i++) {
             if ((from && logs[i][0] < from) || (to && logs[i][0] > to)) {
@@ -83,16 +83,6 @@ export default class LocalStorageLogger extends LoggerInterface {
             };
         }
         readyFn(logs);
-    }
-
-    /**
-     * read all logs
-     * @method all
-     * @static
-     * @param {Function} readyFn - function to call back with logs as parameter
-     */
-    static all(readyFn) {
-        return LocalStorageLogger.get(readyFn);
     }
 
     /**

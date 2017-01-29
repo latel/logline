@@ -1,3 +1,4 @@
+import Interface from './protocols/interface';
 {{#each protocols}}
 import {{upper this false}}Logger from './protocols/{{this}}';
 {{/each}}
@@ -151,6 +152,7 @@ class Logline {
     }
 }
 
+// export protocols for modification and mounting
 Logline.PROTOCOL = {
 {{#each protocols}}
     {{#compare ../protocols.length @index}}
@@ -160,5 +162,8 @@ Logline.PROTOCOL = {
     {{/compare}}
 {{/each}}
 };
+
+// export protocol interface for user custom implements
+Logline.INTERFACE = Object.freeze(Interface);
 
 export default Logline;
