@@ -53,7 +53,7 @@ function test(protocol) {
 
     setInterval(function () {
         if (Logline.PROTOCOL[protocol.toUpperCase()].status === 2) {
-            Logline.getAll(function (logs) {
+            Logline.all(function (logs) {
                 var html = '',
                     i;
                 for (i = 0; i < logs.length; i++) {
