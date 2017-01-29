@@ -37,8 +37,19 @@ describe('Logline', function() {
         assert.isFunction(window.Logline.using, 'static interface using');
         assert.isFunction(window.Logline.keep, 'static interface keep');
         assert.isFunction(window.Logline.clean, 'static interface clean');
-        assert.isFunction(window.Logline.getAll, 'static interface getAll');
+        assert.isFunction(window.Logline.get, 'static interface get');
         done();
+    });
+
+    it('should correctly transform human readable time string', function() {
+        var now = Date.now();
+        assert.equal(window.Logline.INTERFACE.transTimeFormat('.3d', now), now - 1000 * 3600 * 24 * .3, 'humand readable string .3d is not correctly transformed');
+        assert.equal(window.Logline.INTERFACE.transTimeFormat(now), now, 'unix timestamp is not correctly passed through');
+        assert.isNotOk(window.Logline.INTERFACE.transTimeFormat(undefined), 'falsy value `undefined` is not correctly passed through');
+        assert.isNotOk(window.Logline.INTERFACE.transTimeFormat(null), 'falsy value `null` is not correctly passed through');
+        assert.isNotOk(window.Logline.INTERFACE.transTimeFormat(NaN), 'falsy value `NaN` is not correctly passed through');
+        assert.isNotOk(window.Logline.INTERFACE.transTimeFormat(false), 'falsy value `false` is not correctly passed through');
+        assert.isNotOk(window.Logline.INTERFACE.transTimeFormat(''), 'falsy value `\'\'` is not correctly pass through');
     });
 
     it('should be able to specialfy any available protocols', function(done) {
@@ -51,7 +62,7 @@ describe('Logline', function() {
         done();
     });
 
-    it('should be able to create any available protocols instant', function(done) {
+    it('should be able to create any available protocols instance', function(done) {
         isReady(function() {
             for (var i = 0; i < Object.keys(window.Logline.PROTOCOL).length; i++) {
                 window.Logline.using(window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]]);
@@ -92,7 +103,7 @@ if (false && window.Logline.PROTOCOL.INDEXEDDB && window.Logline.PROTOCOL.INDEXE
                 // logger.info('error', randomVars[2]);
                 // logger.info('critical', randomVars[3]);
 
-                window.Logline.getAll(function(logs) {
+                window.Logline.all(function(logs) {
                     assert.isArray(logs, 'logs collect from database');
                     assert.equal(logs[0].data, randomVars[0], 'record get from database is not the one we stored');
                     // assert.equal(logs[1].data, randomVars[1], 'record get from database is not the one we stored');
@@ -141,7 +152,7 @@ if (window.Logline.PROTOCOL.WEBSQL && window.Logline.PROTOCOL.WEBSQL.support) {
 
                 var WebsqlLogger = window.Logline._protocol;
                 assert.isFunction(WebsqlLogger.init, 'static interface init');
-                assert.isFunction(WebsqlLogger.all, 'static interface all');
+                assert.isFunction(WebsqlLogger.get, 'static interface get');
                 assert.isFunction(WebsqlLogger.keep, 'static interface keep');
                 assert.isFunction(WebsqlLogger.clean, 'static interface keep');
                 done();
@@ -159,8 +170,9 @@ if (window.Logline.PROTOCOL.WEBSQL && window.Logline.PROTOCOL.WEBSQL.support) {
                 logger.info('error', randomVars[2]);
                 logger.info('critical', randomVars[3]);
 
-                window.Logline._protocol.all(function(logs) {
+                window.Logline.all(function(logs) {
                     assert.isArray(logs, 'logs collect from database');
+                    assert.isOk(logs.length === 4, 'logs collected is not equal to we acctually stored, which is 4, but get ' + logs.length);
                     assert.equal(logs[0].data, randomVars[0], 'record get from database is not the one we stored');
                     assert.equal(logs[1].data, randomVars[1], 'record get from database is not the one we stored');
                     assert.equal(logs[2].data, randomVars[2], 'record get from database is not the one we stored');
@@ -221,7 +233,7 @@ if (window.Logline.PROTOCOL.LOCALSTORAGE && window.Logline.PROTOCOL.LOCALSTORAGE
 
                 var LocalStorageLogger = window.Logline._protocol;
                 assert.isFunction(LocalStorageLogger.init, 'method `init` should be a function');
-                assert.isFunction(LocalStorageLogger.all, 'method `all` should be a function');
+                assert.isFunction(LocalStorageLogger.get, 'method `get` should be a function');
                 assert.isFunction(LocalStorageLogger.keep, 'method `keep` should be a function');
                 assert.isFunction(LocalStorageLogger.clean, 'method `clean` should be a function');
                 done();
@@ -239,7 +251,7 @@ if (window.Logline.PROTOCOL.LOCALSTORAGE && window.Logline.PROTOCOL.LOCALSTORAGE
                 logger.info('error', randomVars[2]);
                 logger.info('critical', randomVars[3]);
 
-                window.Logline.getAll(function(logs) {
+                window.Logline.all(function(logs) {
                     assert.isArray(logs, 'logs collect from database should be an array');
                     assert.equal(logs.length, 4, 'record length should be 4, currently ' + logs.length);
                     assert.equal(logs[0].data, randomVars[0], 'record get from database is not the one we stored');

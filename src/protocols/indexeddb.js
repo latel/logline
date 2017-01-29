@@ -3,26 +3,26 @@ import Pool from '../lib/pool';
 import * as util from '../lib/util';
 
 /**
- * indexedDB日志协议
+ * IndexedDB protocol
  * @class IndexedDBLogger
  */
 export default class IndexedDBLogger extends LoggerInterface {
     /**
-     * 构造函数
+     * IndexedDB protocol constructor
      * @constructor
-     * @param {String} namespace - 日志的命名空间
+     * @param {String} namespace - namespace to use
      */
     constructor(...args) {
         super(...args);
     }
 
     /**
-     * 添加一条日志记录
+     * add a log record
      * @method _reocrd
      * @private
-     * @parma {String} level - 日志等级
-     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
-     * @param {Mixed} data - 要记录的附加数据
+     * @parma {String} level - log level
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
      */
     _record(level, descriptor, data) {
         if (IndexedDBLogger.status !== LoggerInterface.STATUS.INITED) {
@@ -53,10 +53,10 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     /**
-     * 初始化协议
+     * initialize protocol
      * @method init
      * @static
-     * @param {String} database - 初始化时要使用的数据库名
+     * @param {String} database - database name to use
      */
     static init(database) {
         if (!IndexedDBLogger.support) {
@@ -91,18 +91,24 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     /**
-     * 读取所有日志内容
-     * @method all
+     * get logs in range
+     * if from and end is not defined, will fetch full log
+     * @method get
      * @static
-     * @param {Function} readyFn - 用于读取日志内容的回调函数
+     * @param {String} from - time from, unix time stamp or falsy
+     * @param {String} to - time end, unix time stamp or falsy
+     * @param {Function} readyFn - function to call back with logs as parameter
      */
-    static all(readyFn) {
+    static get(from, to, readyFn) {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
             IndexedDBLogger._pool.push(() => {
-                IndexedDBLogger.all(readyFn);
+                IndexedDBLogger.get(from, to, readyFn);
             });
             return;
         }
+
+        from = LoggerInterface.transTimeFormat(from);
+        to = LoggerInterface.transTimeFormat(to);
 
         let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY || 'readonly'),
             request = store.openCursor(),
@@ -110,8 +116,11 @@ export default class IndexedDBLogger extends LoggerInterface {
 
         request.onsuccess = event => {
             var cursor = event.target.result;
-            console && console.log(cursor);
             if (cursor) {
+                if ((from && cursor.value.time < from) || (to && cursor.value.time > to)) {
+                    cursor.continue();
+                }
+
                 logs.push({
                     time: cursor.value.time,
                     namespace: cursor.value.namespace,
@@ -129,10 +138,10 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     /**
-     * 清理日志
+     * clean logs = keep limited logs
      * @method keep
      * @static
-     * @param {Number} daysToMaintain - 保留多少天数的日志
+     * @param {Number} daysToMaintain - keep logs within days
      */
     static keep(daysToMaintain) {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
@@ -161,7 +170,7 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     /**
-     * 删除日志数据库
+     * delete log database
      * @method clean
      * @static
      */
@@ -185,12 +194,12 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     /**
-     * 获取事务存储过程
+     * get internal transaction store
      * @method _getTransactionStore
      * @private
      * @static
-     * @param {String} mode - 事务过程的参数
-     * @return {Object} 实物存储过程
+     * @param {String} mode - transaction mode
+     * @return {Object} - internal object store
      */
     static _getTransactionStore(mode) {
         if (IndexedDBLogger.db) {
@@ -204,7 +213,7 @@ export default class IndexedDBLogger extends LoggerInterface {
     }
 
     /**
-     * 是否支持indexedDB
+     * detect support situation
      * @prop {Boolean} support
      */
     static get support() {

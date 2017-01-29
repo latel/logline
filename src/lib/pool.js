@@ -1,10 +1,10 @@
 /**
- * 队列池，用于异步调用过程的寄存
+ * Pool, for storage of async calling
  * @class Pool
  */
 export default class Pool {
     /**
-     * 队列池构造器
+     * Pool constructor
      * @constructor
      */
     constructor() {
@@ -12,10 +12,10 @@ export default class Pool {
     }
 
     /**
-     * 向队列中添加过程
+     * add an procedure
      * @method push
-     * @param {Function} handler - 过程函数
-     * @param {Object} context - 过程函数的上下文
+     * @param {Function} handler - procedure handler
+     * @param {Object} context - procedure context
      */
     push(handler, context) {
         handler.context = context;
@@ -23,7 +23,7 @@ export default class Pool {
     }
 
     /**
-     * 消费队列
+     * consume pool
      * @method consume
      */
     consume() {

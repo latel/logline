@@ -3,26 +3,26 @@ import Pool from '../lib/pool';
 import * as util from '../lib/util';
 
 /**
- * websql日志协议
+ * Websql protocol
  * @class WebsqlLogger
  */
 export default class WebsqlLogger extends LoggerInterface {
     /**
-     * 构造函数
+     * Websql logline constructor
      * @constructor
-     * @param {String} namespace - 日志的命名空间
+     * @param {String} namespace - namespace to use
      */
     constructor(...args) {
         super(...args);
     }
 
     /**
-     * 添加一条日志记录
+     * add a log record
      * @method _reocrd
      * @private
-     * @parma {String} level - 日志等级
-     * @param {String} descriptor - 描述符，用于快速理解和全局搜索
-     * @param {Mixed} data - 要记录的附加数据
+     * @parma {String} level - log level
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
      */
     _record(level, descriptor, data) {
         if (WebsqlLogger.status !== LoggerInterface.STATUS.INITED) {
@@ -48,10 +48,10 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     /**
-     * 初始化协议
+     * initialize protocol
      * @method init
      * @static
-     * @param {String} database - 初始化时要使用的数据库名
+     * @param {String} database - database name to use
      */
     static init(database) {
         if (!WebsqlLogger.support) {
@@ -84,30 +84,43 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     /**
-     * 读取所有日志内容
-     * @method all
+     * get logs in range
+     * if from and end is not defined, will fetch full log
+     * @method get
      * @static
-     * @param {Function} readyFn - 用于读取日志内容的回调函数
+     * @param {String} from - time from, unix time stamp or falsy
+     * @param {String} to - time end, unix time stamp or falsy
+     * @param {Function} readyFn - function to call back with logs as parameter
      */
-    static all(readyFn) {
+    static get(from, to, readyFn) {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
             WebsqlLogger._pool.push(() => {
-                WebsqlLogger.all(readyFn);
+                WebsqlLogger.get(from, to, readyFn);
             });
             return;
         }
+
+        from = LoggerInterface.transTimeFormat(from);
+        to = LoggerInterface.transTimeFormat(to);
 
         try {
             WebsqlLogger._db.transaction(function(tx) {
                 tx.executeSql(
                     'SELECT * FROM logs ORDER BY time DESC', [],
                     (tx, res) => {
-                        var logs = [], line, index = res.rows.length;
+                        var logs = [], line, index = res.rows.length, item;
                         while (--index >= 0) {
+                            item = res.rows.item(index);
+                            if ((from && item.time < from) || (to && item.time > to)) {
+                                continue;
+                            }
+
                             // in some devices, properties are configureable: false, writable: false
                             // we need deep copy
-                            line = JSON.parse(JSON.stringify(res.rows.item(index)));
-                            line.data = JSON.parse(line.data);
+                            line = JSON.parse(JSON.stringify(item));
+                            // incase data is an object, not a string
+                            try { line.data = JSON.parse(line.data); }
+                            catch (e) {/* leave line.data as it be */}
                             logs.push(line);
                         }
                         readyFn(logs);
@@ -119,10 +132,10 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     /**
-     * 清理日志
+     * clean logs = keep limited logs
      * @method keep
      * @static
-     * @param {Number} daysToMaintain - 保留多少天数的日志
+     * @param {Number} daysToMaintain - keep logs within days
      */
     static keep(daysToMaintain) {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
@@ -154,7 +167,7 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     /**
-     * 删除日志数据库
+     * delete log database
      * @method clean
      * @static
      */
@@ -180,7 +193,7 @@ export default class WebsqlLogger extends LoggerInterface {
     }
 
     /**
-     * 是否支持websql
+     * detect support situation
      * @prop {Boolean} support
      */
     static get support() {

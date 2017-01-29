@@ -63,6 +63,7 @@ access [https://github.com/latel/logline/releases](https://github.com/latel/logl
 
 ### 2. Import to your project
 Logline is an UMD ready module, choose to import it as your project needed.
+CMD is evil, which is not supported, wrapper it yourself if you need it indeed.
 
 ``` javascript
 // using <script> element
@@ -84,7 +85,7 @@ you can use `using` method to specialfy a protocol.
 Logline.using(Logline.PROTOCOL.WEBSQL);
 ```
 
-***If you call Logline related APIs, without specialfy a protocol in advance***, Logline will choose a available protocol automatically, respect the priority according to the configuration parameters during the compile.
+***If you call Logline related APIs, without specialfy a protocol in advance***, Logline will choose a available protocol automatically, respect the priority according to the configuration parameters during the compile process.
 
 such as, your compile command is `npm run configure -- --with-indexeddb --with-websql --with-localstorage`,
 if protocol indexeddb is available, then indexeddb protocol with be chosen automatically,
@@ -117,7 +118,18 @@ sdkLog.critical('system.vanish', {
 
 ### 5. Read logs
 ``` javascript
-Logline.getAll(function(logs) {
+// collect all logs
+Logline.all(function(logs) {
+    // process logs here
+});
+
+// collet logs within .3 days
+Logline.get('.3d', function(logs) {
+    // process logs here
+});
+
+// collect logs from 3 days before, and earlier than 1 days ago
+Logline.get('3d', '1d', function(logs) {
     // process logs here
 });
 ```
@@ -160,10 +172,14 @@ FAQ
 ---
 
 ### How to upload logs
-since v1.0.1, log upload ability is removed, as the upload procedures varies upon different projects, and we do hope Logline to focus on log recording and maintenance. Anyway, you can still use `Logline.getAll` to get the logs, and implement your own upload procedure.
+since v1.0.1, log upload ability is removed, as the upload procedures varies upon different projects,
+and we do hope Logline to focus on log recording and maintenance.
+Anyway, you can still use `Logline.all` and `Logline.get` to get the logs,
+and implement your own upload procedure.
 
 ### How to analysis
-As the format Logline provited is standard with good readability, thus you can read the logs in the terminal or certain text editors.
+As the format Logline provited is standard with good readability,
+thus you can read the logs in the terminal or certain text editors.
 
 We still provids [Logline-viewer] to helps you to do so.
 

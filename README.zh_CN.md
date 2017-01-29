@@ -58,6 +58,7 @@ bower install logline
 ### 2. 引入脚本
 
 Logline 支持直接使用 script 标签引用，也支持 AMD 模块加载器.
+CMD是邪恶并且不被支持的，如果你真的需要请自己再包装一下。
 
 ``` javascript
 // Script标签引入方式
@@ -117,7 +118,18 @@ sdkLog.critical('system.vanish', {
 ### 5. 读取日志
 
 ``` javascript
-Logline.getAll(function(logs) {
+// collect all logs
+Logline.all(function(logs) {
+    // process logs here
+});
+
+// collet logs within .3 days
+Logline.get('.3d', function(logs) {
+    // process logs here
+});
+
+// collect logs from 3 days before, and earlier than 1 days ago
+Logline.get('3d', '1d', function(logs) {
     // process logs here
 });
 ```
@@ -163,7 +175,8 @@ FAQ
 ----
 
 ### 如何上传日志？
-从v1.0.1以开始，日志上传功能被移除，我们希望logline更专注于日志的记录和维护工作，你可以通过`Logline.getAll`来获取日志来自行实现上传过程。
+从v1.0.1以开始，日志上传功能被移除，我们希望logline更专注于日志的记录和维护工作，
+你可以通过`Logline.all`和`Logline.get`来获取日志来自行实现上传过程。
 
 ### 如何分析日志
 -------------
