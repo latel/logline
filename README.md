@@ -63,6 +63,7 @@ access [https://github.com/latel/logline/releases](https://github.com/latel/logl
 
 ### 2. Import to your project
 Logline is an UMD ready module, choose to import it as your project needed.
+CMD is evil, which is not supported, wrapper it yourself if you need it indeed.
 
 ``` javascript
 // using <script> element
@@ -84,7 +85,7 @@ you can use `using` method to specialfy a protocol.
 Logline.using(Logline.PROTOCOL.WEBSQL);
 ```
 
-***If you call Logline related APIs, without specialfy a protocol in advance***, Logline will choose a available protocol automatically, respect the priority according to the configuration parameters during the compile.
+***If you call Logline related APIs, without specialfy a protocol in advance***, Logline will choose a available protocol automatically, respect the priority according to the configuration parameters during the compile process.
 
 such as, your compile command is `npm run configure -- --with-indexeddb --with-websql --with-localstorage`,
 if protocol indexeddb is available, then indexeddb protocol with be chosen automatically,

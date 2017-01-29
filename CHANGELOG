@@ -1,15 +1,20 @@
+v1.0.4
+U use rollup.js bundler to reduce dist package size(33% off)
+U replace comments in English
+A add get method to get logs in suitable time range
+
 V1.0.3
-F indexDB使用自增键作为主键，修复在高频存储调用过程中会报错的问题（因为唯一keypath timestamp可能会重复）
-U 优化了localStorage协议的存储结构，节省空间
+F add auto-increase as key of IndexedDB, to fix error when logging in high frequency(old keypath timestamp may repeat)
+U updated localStorage protocol's storage structer to save spaces
 
 V1.0.2
-A 自动按照协议的优先级选择可用的协议，优先级来自构建时的参数
-A 自定义数据库名
+A ability to choose protocol automatically
+A custom database name
 
 V1.0.1
-D 解耦日志上传功能，api `reportTO` 和 `deploy` 被移除
+D log upload api `reportTo` and `deploy` is removed,
 
 V1.0.0
-A 日志记录
-A 日志上传
-A 自定义构建，允许只打包业务需要的协议
+A log record
+A log upload
+A custom build, allow build with only protocols wanted

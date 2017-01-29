@@ -21,3 +21,6 @@ indent_size = 4
 [*.json]
 # 缩进2个空格
 indent_size = 2
+
+[makefile]
+indent_style = tab
