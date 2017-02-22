@@ -26,9 +26,7 @@ export default class IndexedDBLogger extends LoggerInterface {
      */
     _record(level, descriptor, data) {
         if (IndexedDBLogger.status !== LoggerInterface.STATUS.INITED) {
-            IndexedDBLogger._pool.push(() => {
-                this._record(level, descriptor, data);
-            });
+            IndexedDBLogger._pool.push(() => this._record(level, descriptor, data));
             if (IndexedDBLogger.status !== LoggerInterface.STATUS.INITING) {
                 IndexedDBLogger.init();
             }
@@ -101,10 +99,7 @@ export default class IndexedDBLogger extends LoggerInterface {
      */
     static get(from, to, readyFn) {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
-            IndexedDBLogger._pool.push(() => {
-                IndexedDBLogger.get(from, to, readyFn);
-            });
-            return;
+            return IndexedDBLogger._pool.push(() => IndexedDBLogger.get(from, to, readyFn));
         }
 
         from = LoggerInterface.transTimeFormat(from);
@@ -145,10 +140,7 @@ export default class IndexedDBLogger extends LoggerInterface {
      */
     static keep(daysToMaintain) {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
-            IndexedDBLogger._pool.push(() => {
-                IndexedDBLogger.keep(daysToMaintain);
-            });
-            return;
+            return IndexedDBLogger._pool.push(() => IndexedDBLogger.keep(daysToMaintain));
         }
 
         let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
@@ -156,11 +148,11 @@ export default class IndexedDBLogger extends LoggerInterface {
             let request = store.clear().onerror = event => util.throwError(event.target.error);
         }
         else {
-            let range = IDBKeyRange.upperBound((Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000), true);
-            let request = store.openCursor(range);
+            let range = (Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000);
+            let request = store.openCursor();
             request.onsuccess = event => {
                 let cursor = event.target.result;
-                if (cursor) {
+                if (cursor && cursor.value.time < range) {
                     store.delete(cursor.primaryKey);
                     cursor.continue();
                 }
@@ -176,10 +168,7 @@ export default class IndexedDBLogger extends LoggerInterface {
      */
     static clean() {
         if (IndexedDBLogger.status !== super.STATUS.INITED) {
-            IndexedDBLogger._pool.push(() => {
-                IndexedDBLogger.clean();
-            });
-            return;
+            return IndexedDBLogger._pool.push(() => IndexedDBLogger.clean());
         }
 
         // database can be removed only after all connections are closed
@@ -208,7 +197,7 @@ export default class IndexedDBLogger extends LoggerInterface {
             return transaction.objectStore('logs');
         }
         else {
-            util.throwError('log database is not created or connections is closed, considering init it.');
+            util.throwError('log database is not created or connections are closed, considering init it.');
         }
     }
 

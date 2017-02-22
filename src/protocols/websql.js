@@ -26,9 +26,7 @@ export default class WebsqlLogger extends LoggerInterface {
      */
     _record(level, descriptor, data) {
         if (WebsqlLogger.status !== LoggerInterface.STATUS.INITED) {
-            WebsqlLogger._pool.push(() => {
-                this._record(level, descriptor, data);
-            });
+            WebsqlLogger._pool.push(() => this._record(level, descriptor, data));
             if (WebsqlLogger.status !== LoggerInterface.STATUS.INITING) {
                 WebsqlLogger.init();
             }
@@ -94,10 +92,7 @@ export default class WebsqlLogger extends LoggerInterface {
      */
     static get(from, to, readyFn) {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
-            WebsqlLogger._pool.push(() => {
-                WebsqlLogger.get(from, to, readyFn);
-            });
-            return;
+            return WebsqlLogger._pool.push(() => WebsqlLogger.get(from, to, readyFn));
         }
 
         from = LoggerInterface.transTimeFormat(from);
@@ -139,10 +134,7 @@ export default class WebsqlLogger extends LoggerInterface {
      */
     static keep(daysToMaintain) {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
-            WebsqlLogger._pool.push(() => {
-                WebsqlLogger.keep(daysToMaintain);
-            });
-            return;
+            return WebsqlLogger._pool.push(() => WebsqlLogger.keep(daysToMaintain));
         }
 
         try {
@@ -173,9 +165,7 @@ export default class WebsqlLogger extends LoggerInterface {
      */
     static clean() {
         if (WebsqlLogger.status !== super.STATUS.INITED) {
-            WebsqlLogger._pool.push(() => {
-                WebsqlLogger.clean();
-            });
+            WebsqlLogger._pool.push(() => WebsqlLogger.clean());
             return;
         }
 
