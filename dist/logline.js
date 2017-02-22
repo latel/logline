@@ -392,7 +392,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
 
             if (IndexedDBLogger.status !== Interface.STATUS.INITED) {
                 IndexedDBLogger._pool.push(function () {
-                    _this2._record(level, descriptor, data);
+                    return _this2._record(level, descriptor, data);
                 });
                 if (IndexedDBLogger.status !== Interface.STATUS.INITING) {
                     IndexedDBLogger.init();
@@ -481,10 +481,9 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
             if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                IndexedDBLogger._pool.push(function () {
-                    IndexedDBLogger.get(from, to, readyFn);
+                return IndexedDBLogger._pool.push(function () {
+                    return IndexedDBLogger.get(from, to, readyFn);
                 });
-                return;
             }
 
             from = Interface.transTimeFormat(from);
@@ -529,10 +528,9 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'keep',
         value: function keep(daysToMaintain) {
             if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                IndexedDBLogger._pool.push(function () {
-                    IndexedDBLogger.keep(daysToMaintain);
+                return IndexedDBLogger._pool.push(function () {
+                    return IndexedDBLogger.keep(daysToMaintain);
                 });
-                return;
             }
 
             var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
@@ -541,18 +539,20 @@ var IndexedDBLogger = function (_LoggerInterface) {
                     return throwError(event.target.error);
                 };
             } else {
-                var range = IDBKeyRange.upperBound(Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000, true);
-                var _request = store.openCursor(range);
-                _request.onsuccess = function (event) {
-                    var cursor = event.target.result;
-                    if (cursor) {
-                        store.delete(cursor.primaryKey);
-                        cursor.continue();
-                    }
-                };
-                _request.onerror = function (event) {
-                    return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
-                };
+                (function () {
+                    var range = Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
+                    var request = store.openCursor();
+                    request.onsuccess = function (event) {
+                        var cursor = event.target.result;
+                        if (cursor && cursor.value.time < range) {
+                            store.delete(cursor.primaryKey);
+                            cursor.continue();
+                        }
+                    };
+                    request.onerror = function (event) {
+                        return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
+                    };
+                })();
             }
         }
 
@@ -566,10 +566,9 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'clean',
         value: function clean() {
             if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                IndexedDBLogger._pool.push(function () {
-                    IndexedDBLogger.clean();
+                return IndexedDBLogger._pool.push(function () {
+                    return IndexedDBLogger.clean();
                 });
-                return;
             }
 
             // database can be removed only after all connections are closed
@@ -604,7 +603,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
                 };
                 return transaction.objectStore('logs');
             } else {
-                throwError('log database is not created or connections is closed, considering init it.');
+                throwError('log database is not created or connections are closed, considering init it.');
             }
         }
 
@@ -809,7 +808,7 @@ var WebsqlLogger = function (_LoggerInterface) {
 
             if (WebsqlLogger.status !== Interface.STATUS.INITED) {
                 WebsqlLogger._pool.push(function () {
-                    _this2._record(level, descriptor, data);
+                    return _this2._record(level, descriptor, data);
                 });
                 if (WebsqlLogger.status !== Interface.STATUS.INITING) {
                     WebsqlLogger.init();
@@ -881,10 +880,9 @@ var WebsqlLogger = function (_LoggerInterface) {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
             if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
-                WebsqlLogger._pool.push(function () {
-                    WebsqlLogger.get(from, to, readyFn);
+                return WebsqlLogger._pool.push(function () {
+                    return WebsqlLogger.get(from, to, readyFn);
                 });
-                return;
             }
 
             from = Interface.transTimeFormat(from);
@@ -933,10 +931,9 @@ var WebsqlLogger = function (_LoggerInterface) {
         key: 'keep',
         value: function keep(daysToMaintain) {
             if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
-                WebsqlLogger._pool.push(function () {
-                    WebsqlLogger.keep(daysToMaintain);
+                return WebsqlLogger._pool.push(function () {
+                    return WebsqlLogger.keep(daysToMaintain);
                 });
-                return;
             }
 
             try {
@@ -967,7 +964,7 @@ var WebsqlLogger = function (_LoggerInterface) {
         value: function clean() {
             if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
                 WebsqlLogger._pool.push(function () {
-                    WebsqlLogger.clean();
+                    return WebsqlLogger.clean();
                 });
                 return;
             }

@@ -62,20 +62,21 @@ class Logline {
      * @param {Function} readyFn - function to call back with logs as parameter
      */
     static get(from, to, readyFn) {
+        var now = Date.now();
         Logline._checkProtocol();
 
         switch (arguments.length) {
-        case 1:
-            readyFn = from;
-            from = undefined;
-            break;
-        case 2:
-            readyFn = to;
-            to = undefined;
-            break;
-        case 3:
-        default:
-            break;
+            case 1:
+                readyFn = from;
+                from = undefined;
+                break;
+            case 2:
+                readyFn = to;
+                to = undefined;
+                break;
+            case 3:
+            default:
+                break;
         }
 
         Logline._protocol.get(from, to, readyFn);
