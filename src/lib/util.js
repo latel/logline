@@ -24,3 +24,21 @@ export function debug(namespace, level, descriptor, data) {
         window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO]('%c %s %s %c %s ' + (typeof data === 'object' ? '%O' : '%s'), LEVEL_STYLE_MAP[level.toUpperCase()] || LEVEL_STYLE_MAP.INFO, level, namespace, 'color:initial', descriptor, data || '');
     }
 }
+
+// filter any function in a object
+export function filterFunction(obj) {
+    var newObj = {}, i;
+
+    if (typeof obj !== 'object') {
+        return obj;
+    }
+
+    for (i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            if (typeof obj[i] !== 'function') {
+                newObj[i] = filterFunction(obj[i]);
+            }
+        }
+    }
+    return newObj;
+}

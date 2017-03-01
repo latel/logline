@@ -38,11 +38,13 @@ export default class IndexedDBLogger extends LoggerInterface {
         transaction.onerror = event => util.throwError(event.target.error);
 
         let store = transaction.objectStore('logs');
+        // should not contains any function in data
+        // otherwise 'DOMException: Failed to execute 'add' on 'IDBObjectStore': An object could not be cloned.' will be thrown
         let request = store.add({
             time: Date.now(),
             namespace: this._namespace,
             descriptor: descriptor,
-            data: data
+            data: util.filterFunction(data)
         });
 
         request.onerror = event => {
