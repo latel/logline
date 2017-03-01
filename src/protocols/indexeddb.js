@@ -33,13 +33,14 @@ export default class IndexedDBLogger extends LoggerInterface {
             return;
         }
 
+        util.debug(this._namespace, level, descriptor, data);
         let transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
         transaction.onerror = event => util.throwError(event.target.error);
 
         let store = transaction.objectStore('logs');
         let request = store.add({
             time: Date.now(),
-            namespace: this._namesapce,
+            namespace: this._namespace,
             descriptor: descriptor,
             data: data
         });

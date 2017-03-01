@@ -34,10 +34,11 @@ export default class WebsqlLogger extends LoggerInterface {
         }
 
         try {
+            util.debug(this._namespace, level, descriptor, data);
             WebsqlLogger._db.transaction(tx => {
                 tx.executeSql(
                     'INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)',
-                    [Date.now(), this._namesapce, level, descriptor, (data === undefined || data === '') ? '' : (JSON.stringify(data) || '')],
+                    [Date.now(), this._namespace, level, descriptor, (data === undefined || data === '') ? '' : (JSON.stringify(data) || '')],
                     () => {/* empty func */},
                     (tx, e) => { throw e.message; }
                 );

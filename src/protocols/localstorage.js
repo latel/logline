@@ -27,12 +27,13 @@ export default class LocalStorageLogger extends LoggerInterface {
         var logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
         logs.push([
             Date.now(),
-            this._namesapce,
+            this._namespace,
             level,
             descriptor,
             data
         ]);
         try {
+            util.debug(this._namespace, level, descriptor, data);
             window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
         } catch (e) { util.throwError('error inserting record'); }
     }
