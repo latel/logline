@@ -41,11 +41,10 @@ Features
 -------
 
 + No extra dependencies
-+ Record logs
-+ Client-side
-+ websql, localstorage and indexeddb protocol
-+ namespace
-+ degree
++ client-side(reach when acctually needed, save bandwith and traffic)
++ multiple filter dimension(namespace, degree and keyword)
++ multiple persistence storage solution(IndexDB, Websql, localStorage)
++ cleanable(in case take too much user space)
 
 Quick to get started
 -------------------
