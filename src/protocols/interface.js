@@ -11,7 +11,7 @@ export default class Interface {
      * @param {String} namespace - namespace to use
      */
     constructor(namespace) {
-        this._namesapce = namespace;
+        this._namespace = namespace;
     }
 
     /**

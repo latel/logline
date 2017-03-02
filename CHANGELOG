@@ -1,3 +1,7 @@
+v1.0.5
+A output logs in developer tool's console
+F IndexedDB: unable to remove special targeted logs
+
 v1.0.4
 U use rollup.js bundler to reduce dist package size(33% off)
 A add makefile, use make for automatic procedures

@@ -1,5 +1,5 @@
 /**
- * logline v1.0.4 (https://github.com/latel/logline#readme)
+ * logline v1.0.5 (https://github.com/latel/logline#readme)
  * Copyright 2017, latel <latelx64@icloud.com>
  * MIT license
  */
@@ -10,10 +10,21 @@
 	(global.Logline = factory());
 }(this, (function () { 'use strict';
 
-// throw out Errors, with global prefix 'Logline: ' ahead of err.message
-function throwError(errMessage) {
-    throw new Error('Logline: ' + errMessage);
-}
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+  return typeof obj;
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+};
+
+
+
+
+
+
+
+
+
+
 
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -104,6 +115,52 @@ var possibleConstructorReturn = function (self, call) {
   return call && (typeof call === "object" || typeof call === "function") ? call : self;
 };
 
+var HAS_CONSOLE = window.console;
+var LEVEL_CONSOLE_MAP = {
+    INFO: 'log',
+    WARN: 'warn',
+    ERROR: 'error',
+    CRITICAL: 'error'
+};
+var LEVEL_STYLE_MAP = {
+    INFO: 'color:#FFF;background:gray',
+    WARN: 'color:#FFF;background:orange',
+    ERROR: 'color:#FFF;background:red',
+    CRITICAL: 'color:#FFF;background:black'
+};
+
+// throw out Errors, with global prefix 'Logline: ' ahead of err.message
+function throwError(errMessage) {
+    throw new Error('Logline: ' + errMessage);
+}
+
+// print debug info in develper's console
+// if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
+function debug(namespace, level, descriptor, data) {
+    if (HAS_CONSOLE) {
+        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO]('%c %s %s %c %s. ' + ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object' ? '%O' : '%s'), LEVEL_STYLE_MAP[level.toUpperCase()] || LEVEL_STYLE_MAP.INFO, level, namespace, 'color:initial', descriptor, data || '');
+    }
+}
+
+// filter any function in a object
+function filterFunction(obj) {
+    var newObj = {},
+        i;
+
+    if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
+        return obj;
+    }
+
+    for (i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            if (typeof obj[i] !== 'function') {
+                newObj[i] = filterFunction(obj[i]);
+            }
+        }
+    }
+    return newObj;
+}
+
 /**
  * Logline Interface
  * @class Interface
@@ -118,7 +175,7 @@ var Interface = function () {
     function Interface(namespace) {
         classCallCheck(this, Interface);
 
-        this._namesapce = namespace;
+        this._namespace = namespace;
     }
 
     /**
@@ -392,7 +449,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
 
             if (IndexedDBLogger.status !== Interface.STATUS.INITED) {
                 IndexedDBLogger._pool.push(function () {
-                    _this2._record(level, descriptor, data);
+                    return _this2._record(level, descriptor, data);
                 });
                 if (IndexedDBLogger.status !== Interface.STATUS.INITING) {
                     IndexedDBLogger.init();
@@ -400,17 +457,20 @@ var IndexedDBLogger = function (_LoggerInterface) {
                 return;
             }
 
+            debug(this._namespace, level, descriptor, data);
             var transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
             transaction.onerror = function (event) {
                 return throwError(event.target.error);
             };
 
             var store = transaction.objectStore('logs');
+            // should not contains any function in data
+            // otherwise 'DOMException: Failed to execute 'add' on 'IDBObjectStore': An object could not be cloned.' will be thrown
             var request = store.add({
                 time: Date.now(),
-                namespace: this._namesapce,
+                namespace: this._namespace,
                 descriptor: descriptor,
-                data: data
+                data: filterFunction(data)
             });
 
             request.onerror = function (event) {
@@ -481,10 +541,9 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
             if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                IndexedDBLogger._pool.push(function () {
-                    IndexedDBLogger.get(from, to, readyFn);
+                return IndexedDBLogger._pool.push(function () {
+                    return IndexedDBLogger.get(from, to, readyFn);
                 });
-                return;
             }
 
             from = Interface.transTimeFormat(from);
@@ -529,10 +588,9 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'keep',
         value: function keep(daysToMaintain) {
             if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                IndexedDBLogger._pool.push(function () {
-                    IndexedDBLogger.keep(daysToMaintain);
+                return IndexedDBLogger._pool.push(function () {
+                    return IndexedDBLogger.keep(daysToMaintain);
                 });
-                return;
             }
 
             var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
@@ -541,18 +599,20 @@ var IndexedDBLogger = function (_LoggerInterface) {
                     return throwError(event.target.error);
                 };
             } else {
-                var range = IDBKeyRange.upperBound(Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000, true);
-                var _request = store.openCursor(range);
-                _request.onsuccess = function (event) {
-                    var cursor = event.target.result;
-                    if (cursor) {
-                        store.delete(cursor.primaryKey);
-                        cursor.continue();
-                    }
-                };
-                _request.onerror = function (event) {
-                    return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
-                };
+                (function () {
+                    var range = Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
+                    var request = store.openCursor();
+                    request.onsuccess = function (event) {
+                        var cursor = event.target.result;
+                        if (cursor && cursor.value.time < range) {
+                            store.delete(cursor.primaryKey);
+                            cursor.continue();
+                        }
+                    };
+                    request.onerror = function (event) {
+                        return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
+                    };
+                })();
             }
         }
 
@@ -566,10 +626,9 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'clean',
         value: function clean() {
             if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                IndexedDBLogger._pool.push(function () {
-                    IndexedDBLogger.clean();
+                return IndexedDBLogger._pool.push(function () {
+                    return IndexedDBLogger.clean();
                 });
-                return;
             }
 
             // database can be removed only after all connections are closed
@@ -604,7 +663,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
                 };
                 return transaction.objectStore('logs');
             } else {
-                throwError('log database is not created or connections is closed, considering init it.');
+                throwError('log database is not created or connections are closed, considering init it.');
             }
         }
 
@@ -661,8 +720,9 @@ var LocalStorageLogger = function (_LoggerInterface) {
         key: '_record',
         value: function _record(level, descriptor, data) {
             var logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
-            logs.push([Date.now(), this._namesapce, level, descriptor, data]);
+            logs.push([Date.now(), this._namespace, level, descriptor, data]);
             try {
+                debug(this._namespace, level, descriptor, data);
                 window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
             } catch (e) {
                 throwError('error inserting record');
@@ -809,7 +869,7 @@ var WebsqlLogger = function (_LoggerInterface) {
 
             if (WebsqlLogger.status !== Interface.STATUS.INITED) {
                 WebsqlLogger._pool.push(function () {
-                    _this2._record(level, descriptor, data);
+                    return _this2._record(level, descriptor, data);
                 });
                 if (WebsqlLogger.status !== Interface.STATUS.INITING) {
                     WebsqlLogger.init();
@@ -818,8 +878,9 @@ var WebsqlLogger = function (_LoggerInterface) {
             }
 
             try {
+                debug(this._namespace, level, descriptor, data);
                 WebsqlLogger._db.transaction(function (tx) {
-                    tx.executeSql('INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)', [Date.now(), _this2._namesapce, level, descriptor, data === undefined || data === '' ? '' : JSON.stringify(data) || ''], function () {/* empty func */}, function (tx, e) {
+                    tx.executeSql('INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)', [Date.now(), _this2._namespace, level, descriptor, data === undefined || data === '' ? '' : JSON.stringify(data) || ''], function () {/* empty func */}, function (tx, e) {
                         throw e.message;
                     });
                 });
@@ -881,10 +942,9 @@ var WebsqlLogger = function (_LoggerInterface) {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
             if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
-                WebsqlLogger._pool.push(function () {
-                    WebsqlLogger.get(from, to, readyFn);
+                return WebsqlLogger._pool.push(function () {
+                    return WebsqlLogger.get(from, to, readyFn);
                 });
-                return;
             }
 
             from = Interface.transTimeFormat(from);
@@ -933,10 +993,9 @@ var WebsqlLogger = function (_LoggerInterface) {
         key: 'keep',
         value: function keep(daysToMaintain) {
             if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
-                WebsqlLogger._pool.push(function () {
-                    WebsqlLogger.keep(daysToMaintain);
+                return WebsqlLogger._pool.push(function () {
+                    return WebsqlLogger.keep(daysToMaintain);
                 });
-                return;
             }
 
             try {
@@ -967,7 +1026,7 @@ var WebsqlLogger = function (_LoggerInterface) {
         value: function clean() {
             if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
                 WebsqlLogger._pool.push(function () {
-                    WebsqlLogger.clean();
+                    return WebsqlLogger.clean();
                 });
                 return;
             }
