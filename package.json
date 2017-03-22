@@ -1,7 +1,7 @@
 {
   "name": "logline",
-  "version": "1.0.5",
-  "description": "logs for the frontend",
+  "version": "1.0.6",
+  "description": "incredible log agent for frontends on the clients",
   "main": "dist/logline.min.js",
   "scripts": {
     "test": "phantomjs ./node_modules/mocha-phantomjs-core/mocha-phantomjs-core.js test/index.html",

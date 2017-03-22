@@ -1,5 +1,5 @@
 /**
- * logline v1.0.5 (https://github.com/latel/logline#readme)
+ * logline v1.0.6 (https://github.com/latel/logline#readme)
  * Copyright 2017, latel <latelx64@icloud.com>
  * MIT license
  */
@@ -468,6 +468,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
             // otherwise 'DOMException: Failed to execute 'add' on 'IDBObjectStore': An object could not be cloned.' will be thrown
             var request = store.add({
                 time: Date.now(),
+                level: level,
                 namespace: this._namespace,
                 descriptor: descriptor,
                 data: filterFunction(data)
@@ -532,8 +533,8 @@ var IndexedDBLogger = function (_LoggerInterface) {
          * if from and end is not defined, will fetch full log
          * @method get
          * @static
-         * @param {String} from - time from, unix time stamp or falsy
-         * @param {String} to - time end, unix time stamp or falsy
+         * @param {String} [from] - time from, unix time stamp or falsy
+         * @param {String} [to] - time end, unix time stamp or falsy
          * @param {Function} readyFn - function to call back with logs as parameter
          */
 
@@ -562,6 +563,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
 
                     logs.push({
                         time: cursor.value.time,
+                        level: cursor.value.level,
                         namespace: cursor.value.namespace,
                         descriptor: cursor.value.descriptor,
                         data: cursor.value.data

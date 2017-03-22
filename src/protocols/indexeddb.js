@@ -42,6 +42,7 @@ export default class IndexedDBLogger extends LoggerInterface {
         // otherwise 'DOMException: Failed to execute 'add' on 'IDBObjectStore': An object could not be cloned.' will be thrown
         let request = store.add({
             time: Date.now(),
+            level: level,
             namespace: this._namespace,
             descriptor: descriptor,
             data: util.filterFunction(data)
@@ -96,8 +97,8 @@ export default class IndexedDBLogger extends LoggerInterface {
      * if from and end is not defined, will fetch full log
      * @method get
      * @static
-     * @param {String} from - time from, unix time stamp or falsy
-     * @param {String} to - time end, unix time stamp or falsy
+     * @param {String} [from] - time from, unix time stamp or falsy
+     * @param {String} [to] - time end, unix time stamp or falsy
      * @param {Function} readyFn - function to call back with logs as parameter
      */
     static get(from, to, readyFn) {
@@ -121,6 +122,7 @@ export default class IndexedDBLogger extends LoggerInterface {
 
                 logs.push({
                     time: cursor.value.time,
+                    level: cursor.value.level,
                     namespace: cursor.value.namespace,
                     descriptor: cursor.value.descriptor,
                     data: cursor.value.data
