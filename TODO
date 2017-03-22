@@ -1,5 +1,6 @@
 WIP
 [ ] IndexedDB: cursor.continue() meet `throw InvalidStateError when the cursor is being iterated`
+[ ] spread arguments support, such as log.info('xx', true, { data: 1 }, 'b');
 
 CONSIDERING
 [ ] fullfill error handling
