@@ -182,10 +182,6 @@ thus you can read the logs in the terminal or certain text editors.
 
 We still provids [Logline-viewer] to helps you to do so.
 
-They are using
--------------
-![Tencent Westock](https://wzq.tenpay.com/weixin/v1/pic/logo/common.png easy stock app in wechat)
-
 
 
 [travis-image]: https://api.travis-ci.org/latel/logline.svg
