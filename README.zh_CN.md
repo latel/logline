@@ -184,11 +184,6 @@ FAQ
 我们为此准备了[Logline-viewer]以供使用。
 
 
-他们都在用
----------
-![腾讯微证券](https://wzq.tenpay.com/weixin/v1/pic/logo/common.png)
-
-
 
 [travis-image]: https://api.travis-ci.org/latel/logline.svg
 [travis-url]: https://travis-ci.org/latel/logline
