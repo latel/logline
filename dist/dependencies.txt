@@ -1,0 +1,1 @@
+No third parties dependencies
