@@ -1,5 +1,5 @@
 {
-  "name": "logline",
+  "name": "logline-web",
   "version": "1.0.5",
   "description": "logs for the frontend",
   "main": "dist/logline.min.js",
