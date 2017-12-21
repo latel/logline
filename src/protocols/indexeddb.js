@@ -114,24 +114,23 @@ export default class IndexedDBLogger extends LoggerInterface {
             logs = [];
 
         request.onsuccess = event => {
-            var cursor = event.target.result;
-            if (cursor) {
-                if ((from && cursor.value.time < from) || (to && cursor.value.time > to)) {
-                    cursor.continue();
+            if (event && event.target && event.target.result && event.target.result.length > 0) {
+                const len = event.target.result.length;
+                for (let i = 0; i < len; i++) {
+                    const value = event.target.result[i];
+                    if ((from && value.time < from) || (to && value.time > to)) {
+                        continue;
+                    }
+                    logs.push({
+                        time: value.time,
+                        level: value.level,
+                        namespace: value.namespace,
+                        descriptor: value.descriptor,
+                        data: value.data
+                    });
                 }
-
-                logs.push({
-                    time: cursor.value.time,
-                    level: cursor.value.level,
-                    namespace: cursor.value.namespace,
-                    descriptor: cursor.value.descriptor,
-                    data: cursor.value.data
-                });
-                cursor.continue();
             }
-            else {
-                readyFn(logs);
-            }
+            readyFn(logs);
         };
 
         request.onerror = event => util.throwError('failed to literat on logs from database.');
