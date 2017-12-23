@@ -78,7 +78,7 @@ describe('Logline', function() {
 
 });
 
-if (false && window.Logline.PROTOCOL.INDEXEDDB && window.Logline.PROTOCOL.INDEXEDDB.support) {
+if (window.Logline.PROTOCOL.INDEXEDDB && window.Logline.PROTOCOL.INDEXEDDB.support) {
     describe('IndexedDBLogger', function() {
         before(function() {
             // window.Logline.using(window.Logline.PROTOCOL.INDEXEDDB);
