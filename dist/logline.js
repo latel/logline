@@ -122,12 +122,6 @@ var LEVEL_CONSOLE_MAP = {
     ERROR: 'error',
     CRITICAL: 'error'
 };
-var LEVEL_STYLE_MAP = {
-    INFO: 'color:#FFF;background:gray',
-    WARN: 'color:#FFF;background:orange',
-    ERROR: 'color:#FFF;background:red',
-    CRITICAL: 'color:#FFF;background:black'
-};
 
 // throw out Errors, with global prefix 'Logline: ' ahead of err.message
 function throwError(errMessage) {
@@ -135,10 +129,10 @@ function throwError(errMessage) {
 }
 
 // print debug info in develper's console
-// if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
+// TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 function debug(namespace, level, descriptor, data) {
     if (HAS_CONSOLE) {
-        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO]('%c %s %s %c %s. ' + ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object' ? '%O' : '%s'), LEVEL_STYLE_MAP[level.toUpperCase()] || LEVEL_STYLE_MAP.INFO, level, namespace, 'color:initial', descriptor, data || '');
+        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](namespace + ' ' + (level || LEVEL_STYLE_MAP.INFO).toUpperCase() + ' ' + descriptor + ' ' + (data || ''));
     }
 }
 
@@ -601,20 +595,18 @@ var IndexedDBLogger = function (_LoggerInterface) {
                     return throwError(event.target.error);
                 };
             } else {
-                (function () {
-                    var range = Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
-                    var request = store.openCursor();
-                    request.onsuccess = function (event) {
-                        var cursor = event.target.result;
-                        if (cursor && cursor.value.time < range) {
-                            store.delete(cursor.primaryKey);
-                            cursor.continue();
-                        }
-                    };
-                    request.onerror = function (event) {
-                        return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
-                    };
-                })();
+                var range = Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
+                var _request = store.openCursor();
+                _request.onsuccess = function (event) {
+                    var cursor = event.target.result;
+                    if (cursor && cursor.value.time < range) {
+                        store.delete(cursor.primaryKey);
+                        cursor.continue();
+                    }
+                };
+                _request.onerror = function (event) {
+                    return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
+                };
             }
         }
 

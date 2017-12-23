@@ -45,10 +45,10 @@ logline是一个轻量，实用和客户端级的前端日志记录工具。
 
 ### 1. 安装
 
-#### 通过bower
+#### 通过npm
 
 ``` shell
-bower install logline
+npm install bitlog
 ```
 
 #### 直接下载
@@ -57,15 +57,17 @@ bower install logline
 
 ### 2. 引入脚本
 
-Logline 支持直接使用 script 标签引用，也支持 AMD 模块加载器.
-CMD是邪恶并且不被支持的，如果你真的需要请自己再包装一下。
+Logline 支持直接使用 script 标签引用，也支持 AMD 模块加载器。
 
 ``` javascript
 // Script标签引入方式
 <script src="./mod/logline.min.js"></script>
-
-// AMD模块方式
+// AMD模块方式（如requirejs）
 var Logline = require('./mod/logline.min');
+// CMD引入方式（使用npm安装）
+var Bitlog = require('bitlog');
+// ES6引入方式（使用npm安装）
+import Bitlog from 'bitlog';
 ```
 
 ### 3. 选择日志协议

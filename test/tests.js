@@ -96,7 +96,7 @@ if (window.Logline.PROTOCOL.INDEXEDDB && window.Logline.PROTOCOL.INDEXEDDB.suppo
             isReady(function() {
                 window.Logline.using(window.Logline.PROTOCOL.INDEXEDDB);
                 window.Logline.keep(0);
-                var logger = new window.Logline('fucku');
+                var logger = new window.Logline('test');
                 var randomVars = window.Math.random().toString(36).slice(2, 6);
                 logger.info('info', randomVars[0]);
                 // logger.info('warn', randomVars[1]);
