@@ -13,6 +13,9 @@ class Logline {
      * @return {Object Protocol Instance}
      */
     constructor(namespace) {
+        if (!(this instanceof Logline)) {
+            return new Logline(namespace);
+        }
         Logline._checkProtocol();
         return new Logline._protocol(namespace);
     }
