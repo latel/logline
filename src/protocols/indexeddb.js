@@ -114,14 +114,16 @@ export default class IndexedDBLogger extends LoggerInterface {
         // IDBObjectStore.getAll is a non-standard API
         if (store.getAll) {
             let result, logs = [];
-            store.getAll().onsuccess = event => result = event.target.result;
-            for (let i = 0; i < result.length; i++) {
-                if ((from && result[i].time < from) || (to && result[i].time > to)) {
-                    continue;
+            store.getAll().onsuccess = event => {
+                result = event.target.result;
+                for (let i = 0; i < result.length; i++) {
+                    if ((from && result[i].time < from) || (to && result[i].time > to)) {
+                        continue;
+                    }
+                    logs.push(result[i]);
                 }
-                logs.push(result[i]);
-            }
-            readyFn(logs);
+                readyFn(logs);
+            };
         } else {
             let request = store.openCursor(), logs = [];
             request.onsuccess = event => {
