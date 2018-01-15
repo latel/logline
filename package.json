@@ -4,7 +4,7 @@
   "description": "logs for the frontend",
   "main": "dist/logline.min.js",
   "scripts": {
-    "test": "mocha-headless-chrome -f test/index.html",
+    "test": "mocha-headless-chrome -f test/index.html -a no-sandbox",
     "configure": "gulp configure",
     "dev": "rollup -c build/rollup.dev.js -w",
     "build:dev": "rollup -c build/rollup.build.js",
