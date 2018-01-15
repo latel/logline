@@ -6,8 +6,9 @@
   "scripts": {
     "test": "mocha-headless-chrome -f test/index.html",
     "configure": "gulp configure",
-    "build:dev": "rollup -c",
-    "build:prod": "NODE_ENV=production rollup -c",
+    "dev": "rollup -c build/rollup.dev.js -w",
+    "build:dev": "rollup -c build/rollup.build.js",
+    "build:prod": "NODE_ENV=production rollup -c build/rollup.build.js",
     "build": "npm run build:dev && npm run build:prod && npm run test"
   },
   "repository": {
@@ -47,6 +48,9 @@
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-license": "^0.2.0",
-    "rollup-plugin-uglify": "^1.0.1"
+    "rollup-plugin-livereload": "^0.6.0",
+    "rollup-plugin-serve": "^0.4.2",
+    "rollup-plugin-uglify": "^1.0.1",
+    "rollup-watch": "^4.3.1"
   }
 }
