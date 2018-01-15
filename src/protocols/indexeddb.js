@@ -130,7 +130,7 @@ export default class IndexedDBLogger extends LoggerInterface {
                 var cursor = event.target.result;
                 if (cursor) {
                     if ((from && cursor.value.time < from) || (to && cursor.value.time > to)) {
-                        cursor.continue();
+                        return cursor.continue();
                     }
 
                     logs.push({
