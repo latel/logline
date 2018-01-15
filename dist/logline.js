@@ -1,9 +1,3 @@
-/**
- * logline v1.0.6 (https://github.com/latel/logline#readme)
- * Copyright 2017, latel <latelx64@icloud.com>
- * MIT license
- */
-
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
@@ -122,12 +116,6 @@ var LEVEL_CONSOLE_MAP = {
     ERROR: 'error',
     CRITICAL: 'error'
 };
-var LEVEL_STYLE_MAP = {
-    INFO: 'color:#FFF;background:gray',
-    WARN: 'color:#FFF;background:orange',
-    ERROR: 'color:#FFF;background:red',
-    CRITICAL: 'color:#FFF;background:black'
-};
 
 // throw out Errors, with global prefix 'Logline: ' ahead of err.message
 function throwError(errMessage) {
@@ -135,10 +123,10 @@ function throwError(errMessage) {
 }
 
 // print debug info in develper's console
-// if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
+// TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 function debug(namespace, level, descriptor, data) {
-    if (HAS_CONSOLE) {
-        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO]('%c %s %s %c %s. ' + ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object' ? '%O' : '%s'), LEVEL_STYLE_MAP[level.toUpperCase()] || LEVEL_STYLE_MAP.INFO, level, namespace, 'color:initial', descriptor, data || '');
+    if (HAS_CONSOLE && Logline.env.verbose) {
+        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](namespace + ' ' + level.toUpperCase() + ' ' + descriptor + ' ' + (data || ''));
     }
 }
 
@@ -550,33 +538,45 @@ var IndexedDBLogger = function (_LoggerInterface) {
             from = Interface.transTimeFormat(from);
             to = Interface.transTimeFormat(to);
 
-            var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY || 'readonly'),
-                request = store.openCursor(),
-                logs = [];
+            var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY);
 
-            request.onsuccess = function (event) {
-                var cursor = event.target.result;
-                if (cursor) {
-                    if (from && cursor.value.time < from || to && cursor.value.time > to) {
-                        cursor.continue();
+            // IDBObjectStore.getAll is a non-standard API
+            if (store.getAll) {
+                var result = void 0,
+                    logs = [];
+                store.getAll().onsuccess = function (event) {
+                    result = event.target.result;
+                    for (var i = 0; i < result.length; i++) {
+                        if (from && result[i].time < from || to && result[i].time > to) {
+                            continue;
+                        }
+                        logs.push(result[i]);
                     }
-
-                    logs.push({
-                        time: cursor.value.time,
-                        level: cursor.value.level,
-                        namespace: cursor.value.namespace,
-                        descriptor: cursor.value.descriptor,
-                        data: cursor.value.data
-                    });
-                    cursor.continue();
-                } else {
                     readyFn(logs);
-                }
-            };
+                };
+            } else {
+                var request = store.openCursor(),
+                    _logs = [];
+                request.onsuccess = function (event) {
+                    var cursor = event.target.result;
+                    if (cursor) {
+                        if (from && cursor.value.time < from || to && cursor.value.time > to) {
+                            return cursor.continue();
+                        }
 
-            request.onerror = function (event) {
-                return throwError('failed to literat on logs from database.');
-            };
+                        _logs.push({
+                            time: cursor.value.time,
+                            level: cursor.value.level,
+                            namespace: cursor.value.namespace,
+                            descriptor: cursor.value.descriptor,
+                            data: cursor.value.data
+                        });
+                        cursor.continue();
+                    } else {
+                        readyFn(_logs);
+                    }
+                };
+            }
         }
 
         /**
@@ -601,20 +601,18 @@ var IndexedDBLogger = function (_LoggerInterface) {
                     return throwError(event.target.error);
                 };
             } else {
-                (function () {
-                    var range = Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
-                    var request = store.openCursor();
-                    request.onsuccess = function (event) {
-                        var cursor = event.target.result;
-                        if (cursor && cursor.value.time < range) {
-                            store.delete(cursor.primaryKey);
-                            cursor.continue();
-                        }
-                    };
-                    request.onerror = function (event) {
-                        return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
-                    };
-                })();
+                var range = Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
+                var _request = store.openCursor();
+                _request.onsuccess = function (event) {
+                    var cursor = event.target.result;
+                    if (cursor && cursor.value.time < range) {
+                        store.delete(cursor.primaryKey);
+                        cursor.continue();
+                    }
+                };
+                _request.onerror = function (event) {
+                    return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
+                };
             }
         }
 
@@ -659,7 +657,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: '_getTransactionStore',
         value: function _getTransactionStore(mode) {
             if (IndexedDBLogger.db) {
-                var transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE || 'readwrite');
+                var transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE);
                 transaction.onerror = function (event) {
                     return throwError(event.target.error);
                 };
@@ -677,7 +675,12 @@ var IndexedDBLogger = function (_LoggerInterface) {
     }, {
         key: 'support',
         get: function get$$1() {
-            return !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
+            var support = !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
+            if (support) {
+                window.IDBTransaction.READ_WRITE = 'readwrite';
+                window.IDBTransaction.READ_ONLY = 'readonly';
+            }
+            return support;
         }
     }]);
     return IndexedDBLogger;
@@ -1060,7 +1063,7 @@ var WebsqlLogger = function (_LoggerInterface) {
     return WebsqlLogger;
 }(Interface);
 
-var Logline = function () {
+var Logline$1 = function () {
     /**
      * Logline constructor
      * @constructor
@@ -1070,6 +1073,9 @@ var Logline = function () {
     function Logline(namespace) {
         classCallCheck(this, Logline);
 
+        if (!(this instanceof Logline)) {
+            return new Logline(namespace);
+        }
         Logline._checkProtocol();
         return new Logline._protocol(namespace);
     }
@@ -1130,7 +1136,6 @@ var Logline = function () {
     }, {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
-            var now = Date.now();
             Logline._checkProtocol();
 
             switch (arguments.length) {
@@ -1240,15 +1245,20 @@ var Logline = function () {
 // export protocols for modification and mounting
 
 
-Logline.PROTOCOL = {
+Logline$1.PROTOCOL = {
     INDEXEDDB: IndexedDBLogger,
     LOCALSTORAGE: LocalStorageLogger,
     WEBSQL: WebsqlLogger
 };
 
 // export protocol interface for user custom implements
-Logline.INTERFACE = Object.freeze(Interface);
+Logline$1.INTERFACE = Object.freeze(Interface);
 
-return Logline;
+// export Logline env, just like Unix Environment variables
+Logline$1.env = {
+    verbose: true
+};
+
+return Logline$1;
 
 })));

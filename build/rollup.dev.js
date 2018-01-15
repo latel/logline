@@ -3,6 +3,8 @@ import * as path from 'path';
 import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
 import license from 'rollup-plugin-license';
+import serve from 'rollup-plugin-serve';
+import livereload from 'rollup-plugin-livereload';
 import * as jsonfile from 'jsonfile';
 
 const pkg = jsonfile.readFileSync('./package.json');
@@ -23,9 +25,14 @@ export default {
                 file: path.join(__dirname, 'src', 'BANNER')
             },
             thirdParty: {
-                output: path.join(__dirname, 'dist', 'dependencies.txt'),
+                output: path.join(__dirname, '../dist', 'dependencies.txt'),
                 includePrivate: true
             }
-        })
+        }),
+        serve({
+            contentBase: './',
+            open: true
+        }),
+        livereload()
     ]
 };

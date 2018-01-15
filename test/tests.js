@@ -1,5 +1,7 @@
 var assert = window.chai.assert;
 
+Logline.env.verbose = false;
+
 var readyTimer, repeated, isReady = function(readyFn) {
     clearInterval(readyTimer), repeated = 0;
     readyTimer = setInterval(function() {
@@ -78,7 +80,7 @@ describe('Logline', function() {
 
 });
 
-if (false && window.Logline.PROTOCOL.INDEXEDDB && window.Logline.PROTOCOL.INDEXEDDB.support) {
+if (window.Logline.PROTOCOL.INDEXEDDB && window.Logline.PROTOCOL.INDEXEDDB.support) {
     describe('IndexedDBLogger', function() {
         before(function() {
             // window.Logline.using(window.Logline.PROTOCOL.INDEXEDDB);
@@ -96,7 +98,7 @@ if (false && window.Logline.PROTOCOL.INDEXEDDB && window.Logline.PROTOCOL.INDEXE
             isReady(function() {
                 window.Logline.using(window.Logline.PROTOCOL.INDEXEDDB);
                 window.Logline.keep(0);
-                var logger = new window.Logline('fucku');
+                var logger = new window.Logline('test');
                 var randomVars = window.Math.random().toString(36).slice(2, 6);
                 logger.info('info', randomVars[0]);
                 // logger.info('warn', randomVars[1]);

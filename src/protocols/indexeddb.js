@@ -109,32 +109,44 @@ export default class IndexedDBLogger extends LoggerInterface {
         from = LoggerInterface.transTimeFormat(from);
         to = LoggerInterface.transTimeFormat(to);
 
-        let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY || 'readonly'),
-            request = store.openCursor(),
-            logs = [];
+        let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY);
 
-        request.onsuccess = event => {
-            var cursor = event.target.result;
-            if (cursor) {
-                if ((from && cursor.value.time < from) || (to && cursor.value.time > to)) {
+        // IDBObjectStore.getAll is a non-standard API
+        if (store.getAll) {
+            let result, logs = [];
+            store.getAll().onsuccess = event => {
+                result = event.target.result;
+                for (let i = 0; i < result.length; i++) {
+                    if ((from && result[i].time < from) || (to && result[i].time > to)) {
+                        continue;
+                    }
+                    logs.push(result[i]);
+                }
+                readyFn(logs);
+            };
+        } else {
+            let request = store.openCursor(), logs = [];
+            request.onsuccess = event => {
+                var cursor = event.target.result;
+                if (cursor) {
+                    if ((from && cursor.value.time < from) || (to && cursor.value.time > to)) {
+                        return cursor.continue();
+                    }
+
+                    logs.push({
+                        time: cursor.value.time,
+                        level: cursor.value.level,
+                        namespace: cursor.value.namespace,
+                        descriptor: cursor.value.descriptor,
+                        data: cursor.value.data
+                    });
                     cursor.continue();
                 }
-
-                logs.push({
-                    time: cursor.value.time,
-                    level: cursor.value.level,
-                    namespace: cursor.value.namespace,
-                    descriptor: cursor.value.descriptor,
-                    data: cursor.value.data
-                });
-                cursor.continue();
-            }
-            else {
-                readyFn(logs);
-            }
-        };
-
-        request.onerror = event => util.throwError('failed to literat on logs from database.');
+                else {
+                    readyFn(logs);
+                }
+            };
+        }
     }
 
     /**
@@ -197,7 +209,7 @@ export default class IndexedDBLogger extends LoggerInterface {
      */
     static _getTransactionStore(mode) {
         if (IndexedDBLogger.db) {
-            let transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE || 'readwrite');
+            let transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE);
             transaction.onerror = event => util.throwError(event.target.error);
             return transaction.objectStore('logs');
         }
@@ -211,6 +223,11 @@ export default class IndexedDBLogger extends LoggerInterface {
      * @prop {Boolean} support
      */
     static get support() {
-        return !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
+        const support = !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
+        if (support) {
+            window.IDBTransaction.READ_WRITE = 'readwrite';
+            window.IDBTransaction.READ_ONLY = 'readonly';
+        }
+        return support;
     }
 }
