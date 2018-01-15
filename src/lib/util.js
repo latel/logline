@@ -14,7 +14,7 @@ export function throwError(errMessage) {
 // print debug info in develper's console
 // TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 export function debug(namespace, level, descriptor, data) {
-    if (HAS_CONSOLE) {
+    if (HAS_CONSOLE && Logline.env.verbose) {
         window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](`${namespace} ${(level || LEVEL_STYLE_MAP.INFO).toUpperCase()} ${descriptor} ${data || ''}`);
     }
 }

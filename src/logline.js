@@ -65,7 +65,6 @@ class Logline {
      * @param {Function} readyFn - function to call back with logs as parameter
      */
     static get(from, to, readyFn) {
-        var now = Date.now();
         Logline._checkProtocol();
 
         switch (arguments.length) {
@@ -164,5 +163,10 @@ Logline.PROTOCOL = {
 
 // export protocol interface for user custom implements
 Logline.INTERFACE = Object.freeze(Interface);
+
+// export Logline env, just like Unix Environment variables
+Logline.env = {
+    verbose: true
+};
 
 export default Logline;
