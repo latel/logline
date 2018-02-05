@@ -51,7 +51,7 @@ logline是一个轻量，实用和客户端级的前端日志记录工具。
 npm install logline-web
 ```
 
-*很抱歉，logline这个包名已经被占用，欢迎大家在[issue](https://github.com/latel/logline/issues)里推荐一个好名字*
+*很抱歉，logline这个包名已经被占用，欢迎大家在[issue](https://github.com/latel/logline/issues/7)里推荐一个好名字*
 
 #### 直接下载
 访问 [https://github.com/latel/logline/releases](https://github.com/latel/logline/releases)，选择需要的版本下载，引入自己的项目。

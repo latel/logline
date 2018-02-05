@@ -125,7 +125,7 @@ function throwError(errMessage) {
 // print debug info in develper's console
 // TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 function debug(namespace, level, descriptor, data) {
-    if (HAS_CONSOLE && Logline.env.verbose) {
+    if (HAS_CONSOLE && window.Logline && window.Logline.env && window.Logline.env.verbose) {
         window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](namespace + ' ' + level.toUpperCase() + ' ' + descriptor + ' ' + (data || ''));
     }
 }
@@ -1063,7 +1063,7 @@ var WebsqlLogger = function (_LoggerInterface) {
     return WebsqlLogger;
 }(Interface);
 
-var Logline$1 = function () {
+var Logline = function () {
     /**
      * Logline constructor
      * @constructor
@@ -1245,20 +1245,20 @@ var Logline$1 = function () {
 // export protocols for modification and mounting
 
 
-Logline$1.PROTOCOL = {
+Logline.PROTOCOL = {
     INDEXEDDB: IndexedDBLogger,
     LOCALSTORAGE: LocalStorageLogger,
     WEBSQL: WebsqlLogger
 };
 
 // export protocol interface for user custom implements
-Logline$1.INTERFACE = Object.freeze(Interface);
+Logline.INTERFACE = Object.freeze(Interface);
 
 // export Logline env, just like Unix Environment variables
-Logline$1.env = {
+Logline.env = {
     verbose: true
 };
 
-return Logline$1;
+return Logline;
 
 })));

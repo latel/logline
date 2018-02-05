@@ -57,7 +57,7 @@ Quick to get started
 bower install logline-web
 ```
 
-*sadly, package name 'logline' is taken, any suggestions are welcome in [ISSUES](https://github.com/latel/logline/issues) *
+*sadly, package name 'logline' is taken, any suggestions are welcome in [ISSUES](https://github.com/latel/logline/issues/7) *
 
 #### Download archive
 access [https://github.com/latel/logline/releases](https://github.com/latel/logline/releases), selecte the version you wanted.
