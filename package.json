@@ -1,6 +1,6 @@
 {
   "name": "logline",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "logs for the frontend",
   "main": "dist/logline.min.js",
   "scripts": {
@@ -44,7 +44,7 @@
     "jsonfile": "^2.4.0",
     "minimist": "^1.2.0",
     "mocha": "^2.5.3",
-    "mocha-headless-chrome": "^1.7.1",
+    "mocha-headless-chrome": "1.7.1",
     "moment": "^2.13.0",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
