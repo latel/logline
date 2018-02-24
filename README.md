@@ -48,10 +48,8 @@ logline是一个轻量，实用和客户端级的前端日志记录工具。
 #### 通过npm
 
 ``` shell
-npm install logline-web
+npm install logline
 ```
-
-*很抱歉，logline这个包名已经被占用，欢迎大家在[issue](https://github.com/latel/logline/issues/7)里推荐一个好名字*
 
 #### 直接下载
 访问 [https://github.com/latel/logline/releases](https://github.com/latel/logline/releases)，选择需要的版本下载，引入自己的项目。
@@ -67,9 +65,9 @@ Logline 支持直接使用 script 标签引用，也支持 AMD 模块加载器�
 // AMD模块方式（如requirejs）
 var Logline = require('./mod/logline.min');
 // CMD引入方式（使用npm安装）
-var Bitlog = require('bitlog');
+var Logline = require('logline');
 // ES6引入方式（使用npm安装）
-import Bitlog from 'bitlog';
+import Logline from 'logline';
 ```
 
 ### 3. 选择日志协议
@@ -182,16 +180,7 @@ FAQ
 从v1.0.1以开始，日志上传功能被移除，我们希望logline更专注于日志的记录和维护工作，
 你可以通过`Logline.all`和`Logline.get`来获取日志来自行实现上传过程。
 
-### 如何分析日志
--------------
-由于Logline上传的日志格式符合标准，具有良好的可阅读性，因此我们可以在某种程度上直接使用命令行工具或者编辑器来阅读。
-但是对命令行不熟悉的用户使用可能仍然有困难，因此有必要使用Web技术栈搭建一个易于使用并且视觉良好的工具。
-
-我们为此准备了[Logline-viewer]以供使用。
-
 
 
 [travis-image]: https://api.travis-ci.org/latel/logline.svg
 [travis-url]: https://travis-ci.org/latel/logline
-[logline-viewer]: https://github.com/latel/logline-viewer
-[logline-uploader]: https://github.com/latel/logline-uploader

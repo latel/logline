@@ -54,10 +54,8 @@ Quick to get started
 #### with Bower
 
 ``` shell
-bower install logline-web
+bower install logline
 ```
-
-*sadly, package name 'logline' is taken, any suggestions are welcome in [ISSUES](https://github.com/latel/logline/issues/7) *
 
 #### Download archive
 access [https://github.com/latel/logline/releases](https://github.com/latel/logline/releases), selecte the version you wanted.
@@ -178,15 +176,7 @@ and we do hope Logline to focus on log recording and maintenance.
 Anyway, you can still use `Logline.all` and `Logline.get` to get the logs,
 and implement your own upload procedure.
 
-### How to analysis
-As the format Logline provited is standard with good readability,
-thus you can read the logs in the terminal or certain text editors.
-
-We still provids [Logline-viewer] to helps you to do so.
-
 
 
 [travis-image]: https://api.travis-ci.org/latel/logline.svg
 [travis-url]: https://travis-ci.org/latel/logline
-[logline-viewer]: https://github.com/latel/logline-viewer
-[logline-uploader]: https://github.com/latel/logline-uploader
