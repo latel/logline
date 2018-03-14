@@ -29,7 +29,7 @@
         "no-empty": [1, {"allowEmptyCatch": true}], // 空代码块
         "no-use-before-define": [0, {"functions": false, "classes": true}],    // 使用前未定义
         //"complexity": [1, 10],                    // 圈复杂度大于10 警告
-        "no-console": 1,                          // 不允许有console
+        "no-console": 0,                          // 不允许有console
         "no-debugger": 2,                         // debugger 调试代码未删除
         "no-dupe-args": 2,                        // 参数重复
 
