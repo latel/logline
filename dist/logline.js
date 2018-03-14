@@ -119,7 +119,7 @@ var LEVEL_CONSOLE_MAP = {
 
 // throw out Errors, with global prefix 'Logline: ' ahead of err.message
 function throwError(errMessage) {
-    throw new Error('Logline: ' + errMessage);
+    HAS_CONSOLE && console.error('Logline: ' + errMessage);
 }
 
 // print debug info in develper's console
