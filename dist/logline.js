@@ -730,7 +730,9 @@ var LocalStorageLogger = function (_LoggerInterface) {
                 debug(this._namespace, level, descriptor, data);
                 window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
             } catch (e) {
-                throwError('error inserting record');
+                window.localStorage.removeItem(LocalStorageLogger._database);
+                window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
+                throwError('error inserting record, may be localStorage is full');
             }
         }
 
