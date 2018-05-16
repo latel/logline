@@ -435,37 +435,41 @@ var IndexedDBLogger = function (_LoggerInterface) {
         value: function _record(level, descriptor, data) {
             var _this2 = this;
 
-            if (IndexedDBLogger.status !== Interface.STATUS.INITED) {
-                IndexedDBLogger._pool.push(function () {
-                    return _this2._record(level, descriptor, data);
-                });
-                if (IndexedDBLogger.status !== Interface.STATUS.INITING) {
-                    IndexedDBLogger.init();
+            try {
+                if (IndexedDBLogger.status !== Interface.STATUS.INITED) {
+                    IndexedDBLogger._pool.push(function () {
+                        return _this2._record(level, descriptor, data);
+                    });
+                    if (IndexedDBLogger.status !== Interface.STATUS.INITING) {
+                        IndexedDBLogger.init();
+                    }
+                    return;
                 }
-                return;
+
+                debug(this._namespace, level, descriptor, data);
+                var transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
+                transaction.onerror = function (event) {
+                    return throwError(event.target.error);
+                };
+
+                var store = transaction.objectStore('logs');
+                // should not contains any function in data
+                // otherwise 'DOMException: Failed to execute 'add' on 'IDBObjectStore': An object could not be cloned.' will be thrown
+                var request = store.add({
+                    time: Date.now(),
+                    level: level,
+                    namespace: this._namespace,
+                    descriptor: descriptor,
+                    data: filterFunction(data)
+                });
+
+                request.onerror = function (event) {
+                    IndexedDBLogger.status = Interface.STATUS.FAILED;
+                    throwError(event.target.error);
+                };
+            } catch (e) {
+                throwError('failed to write, ' + e.message);
             }
-
-            debug(this._namespace, level, descriptor, data);
-            var transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
-            transaction.onerror = function (event) {
-                return throwError(event.target.error);
-            };
-
-            var store = transaction.objectStore('logs');
-            // should not contains any function in data
-            // otherwise 'DOMException: Failed to execute 'add' on 'IDBObjectStore': An object could not be cloned.' will be thrown
-            var request = store.add({
-                time: Date.now(),
-                level: level,
-                namespace: this._namespace,
-                descriptor: descriptor,
-                data: filterFunction(data)
-            });
-
-            request.onerror = function (event) {
-                IndexedDBLogger.status = Interface.STATUS.FAILED;
-                throwError(event.target.error);
-            };
         }
 
         /**
@@ -480,40 +484,44 @@ var IndexedDBLogger = function (_LoggerInterface) {
         value: function init(database) {
             var _this3 = this;
 
-            if (!IndexedDBLogger.support) {
-                throwError('your platform does not support indexeddb protocol.');
-            }
+            try {
+                if (!IndexedDBLogger.support) {
+                    throwError('your platform does not support indexeddb protocol.');
+                }
 
-            if (IndexedDBLogger.status) {
-                return false;
-            }
+                if (IndexedDBLogger.status) {
+                    return false;
+                }
 
-            IndexedDBLogger._pool = IndexedDBLogger._pool || new Pool();
-            IndexedDBLogger._database = database || 'logline';
-            IndexedDBLogger.status = get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITING;
+                IndexedDBLogger._pool = IndexedDBLogger._pool || new Pool();
+                IndexedDBLogger._database = database || 'logline';
+                IndexedDBLogger.status = get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITING;
 
-            IndexedDBLogger.request = window.indexedDB.open(IndexedDBLogger._database);
-            IndexedDBLogger.request.onerror = function (event) {
-                return throwError('protocol indexeddb is prevented.');
-            };
-            IndexedDBLogger.request.onsuccess = function (event) {
-                IndexedDBLogger.db = event.target.result;
-                IndexedDBLogger.status = get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', _this3).INITED;
-                IndexedDBLogger._pool.consume();
-                // globally handle db request errors
-                IndexedDBLogger.db.onerror = function (event) {
-                    return throwError(event.target.error);
+                IndexedDBLogger.request = window.indexedDB.open(IndexedDBLogger._database);
+                IndexedDBLogger.request.onerror = function (event) {
+                    return throwError('protocol indexeddb is prevented.');
                 };
-            };
-            IndexedDBLogger.request.onupgradeneeded = function (event) {
-                // init dabasebase
-                var db = event.target.result,
-                    store = db.createObjectStore('logs', { autoIncrement: true });
-                store.createIndex('namespace', 'namespace', { unique: false });
-                store.createIndex('level', 'level', { unique: false });
-                store.createIndex('descriptor', 'descriptor', { unique: false });
-                store.createIndex('data', 'data', { unique: false });
-            };
+                IndexedDBLogger.request.onsuccess = function (event) {
+                    IndexedDBLogger.db = event.target.result;
+                    IndexedDBLogger.status = get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', _this3).INITED;
+                    IndexedDBLogger._pool.consume();
+                    // globally handle db request errors
+                    IndexedDBLogger.db.onerror = function (event) {
+                        return throwError(event.target.error);
+                    };
+                };
+                IndexedDBLogger.request.onupgradeneeded = function (event) {
+                    // init dabasebase
+                    var db = event.target.result,
+                        store = db.createObjectStore('logs', { autoIncrement: true });
+                    store.createIndex('namespace', 'namespace', { unique: false });
+                    store.createIndex('level', 'level', { unique: false });
+                    store.createIndex('descriptor', 'descriptor', { unique: false });
+                    store.createIndex('data', 'data', { unique: false });
+                };
+            } catch (e) {
+                throwError('failed init, ' + e.message);
+            }
         }
 
         /**
@@ -529,53 +537,60 @@ var IndexedDBLogger = function (_LoggerInterface) {
     }, {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
-            if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                return IndexedDBLogger._pool.push(function () {
-                    return IndexedDBLogger.get(from, to, readyFn);
-                });
-            }
+            try {
+                if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
+                    return IndexedDBLogger._pool.push(function () {
+                        return IndexedDBLogger.get(from, to, readyFn);
+                    });
+                }
 
-            from = Interface.transTimeFormat(from);
-            to = Interface.transTimeFormat(to);
+                from = Interface.transTimeFormat(from);
+                to = Interface.transTimeFormat(to);
 
-            var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY);
+                var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_ONLY);
+                if (!store) {
+                    return readyFn([]);
+                }
 
-            // IDBObjectStore.getAll is a non-standard API
-            if (store.getAll) {
-                var result = void 0,
-                    logs = [];
-                store.getAll().onsuccess = function (event) {
-                    result = event.target.result;
-                    for (var i = 0; i < result.length; i++) {
-                        if (from && result[i].time < from || to && result[i].time > to) {
-                            continue;
+                // IDBObjectStore.getAll is a non-standard API
+                if (store.getAll) {
+                    var result = void 0,
+                        logs = [];
+                    store.getAll().onsuccess = function (event) {
+                        result = event.target.result;
+                        for (var i = 0; i < result.length; i++) {
+                            if (from && result[i].time < from || to && result[i].time > to) {
+                                continue;
+                            }
+                            logs.push(result[i]);
                         }
-                        logs.push(result[i]);
-                    }
-                    readyFn(logs);
-                };
-            } else {
-                var request = store.openCursor(),
-                    _logs = [];
-                request.onsuccess = function (event) {
-                    var cursor = event.target.result;
-                    if (cursor) {
-                        if (from && cursor.value.time < from || to && cursor.value.time > to) {
-                            return cursor.continue();
-                        }
+                        readyFn(logs);
+                    };
+                } else {
+                    var request = store.openCursor(),
+                        _logs = [];
+                    request.onsuccess = function (event) {
+                        var cursor = event.target.result;
+                        if (cursor) {
+                            if (from && cursor.value.time < from || to && cursor.value.time > to) {
+                                return cursor.continue();
+                            }
 
-                        _logs.push({
-                            time: cursor.value.time,
-                            level: cursor.value.level,
-                            namespace: cursor.value.namespace,
-                            descriptor: cursor.value.descriptor,
-                            data: cursor.value.data
-                        });
-                        cursor.continue();
-                    } else {
-                        readyFn(_logs);
-                    }
-                };
+                            _logs.push({
+                                time: cursor.value.time,
+                                level: cursor.value.level,
+                                namespace: cursor.value.namespace,
+                                descriptor: cursor.value.descriptor,
+                                data: cursor.value.data
+                            });
+                            cursor.continue();
+                        } else {
+                            readyFn(_logs);
+                        }
+                    };
+                }
+            } catch (e) {
+                throwError('failed to get logs, ' + e.message);
             }
         }
 
@@ -589,30 +604,37 @@ var IndexedDBLogger = function (_LoggerInterface) {
     }, {
         key: 'keep',
         value: function keep(daysToMaintain) {
-            if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                return IndexedDBLogger._pool.push(function () {
-                    return IndexedDBLogger.keep(daysToMaintain);
-                });
-            }
+            try {
+                if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
+                    return IndexedDBLogger._pool.push(function () {
+                        return IndexedDBLogger.keep(daysToMaintain);
+                    });
+                }
 
-            var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
-            if (!daysToMaintain) {
-                var request = store.clear().onerror = function (event) {
-                    return throwError(event.target.error);
-                };
-            } else {
-                var range = Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
-                var _request = store.openCursor();
-                _request.onsuccess = function (event) {
-                    var cursor = event.target.result;
-                    if (cursor && cursor.value.time < range) {
-                        store.delete(cursor.primaryKey);
-                        cursor.continue();
-                    }
-                };
-                _request.onerror = function (event) {
-                    return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
-                };
+                var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
+                if (!store) {
+                    return false;
+                }
+                if (!daysToMaintain) {
+                    var request = store.clear().onerror = function (event) {
+                        return throwError(event.target.error);
+                    };
+                } else {
+                    var range = Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
+                    var _request = store.openCursor();
+                    _request.onsuccess = function (event) {
+                        var cursor = event.target.result;
+                        if (cursor && cursor.value.time < range) {
+                            store.delete(cursor.primaryKey);
+                            cursor.continue();
+                        }
+                    };
+                    _request.onerror = function (event) {
+                        return throwError('unable to locate logs earlier than ' + daysToMaintain + 'd.');
+                    };
+                }
+            } catch (e) {
+                throwError('failed to keep logs, ' + e.message);
             }
         }
 
@@ -625,23 +647,27 @@ var IndexedDBLogger = function (_LoggerInterface) {
     }, {
         key: 'clean',
         value: function clean() {
-            if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
-                return IndexedDBLogger._pool.push(function () {
-                    return IndexedDBLogger.clean();
-                });
-            }
+            try {
+                if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
+                    return IndexedDBLogger._pool.push(function () {
+                        return IndexedDBLogger.clean();
+                    });
+                }
 
-            // database can be removed only after all connections are closed
-            IndexedDBLogger.db.close();
-            var request = window.indexedDB.deleteDatabase(IndexedDBLogger._database);
-            request.onerror = function (event) {
-                return throwError(event.target.error);
-            };
-            /* eslint no-unused-vars: "off" */
-            request.onsuccess = function (event) {
-                delete IndexedDBLogger.status;
-                delete IndexedDBLogger.db;
-            };
+                // database can be removed only after all connections are closed
+                IndexedDBLogger.db.close();
+                var request = window.indexedDB.deleteDatabase(IndexedDBLogger._database);
+                request.onerror = function (event) {
+                    return throwError(event.target.error);
+                };
+                /* eslint no-unused-vars: "off" */
+                request.onsuccess = function (event) {
+                    delete IndexedDBLogger.status;
+                    delete IndexedDBLogger.db;
+                };
+            } catch (e) {
+                throwError('failed to cleanup logs, ' + e.message);
+            }
         }
 
         /**
@@ -656,14 +682,19 @@ var IndexedDBLogger = function (_LoggerInterface) {
     }, {
         key: '_getTransactionStore',
         value: function _getTransactionStore(mode) {
-            if (IndexedDBLogger.db) {
-                var transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE);
-                transaction.onerror = function (event) {
-                    return throwError(event.target.error);
-                };
-                return transaction.objectStore('logs');
-            } else {
-                throwError('log database is not created or connections are closed, considering init it.');
+            try {
+                if (IndexedDBLogger.db) {
+                    var transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE);
+                    transaction.onerror = function (event) {
+                        return throwError(event.target.error);
+                    };
+                    return transaction.objectStore('logs');
+                } else {
+                    throwError('log database is not created or connections are closed, considering init it.');
+                }
+            } catch (e) {
+                throwError('failed to generate new transaction, ' + e.message);
+                return false;
             }
         }
 
@@ -724,15 +755,16 @@ var LocalStorageLogger = function (_LoggerInterface) {
     createClass(LocalStorageLogger, [{
         key: '_record',
         value: function _record(level, descriptor, data) {
-            var logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
-            logs.push([Date.now(), this._namespace, level, descriptor, data]);
+            var logs;
             try {
+                logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
+                logs.push([Date.now(), this._namespace, level, descriptor, data]);
                 debug(this._namespace, level, descriptor, data);
                 window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
             } catch (e) {
                 window.localStorage.removeItem(LocalStorageLogger._database);
                 window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
-                throwError('error inserting record, may be localStorage is full');
+                throwError('failed to write, may be localStorage is full, ' + e.message);
             }
         }
 
@@ -746,14 +778,18 @@ var LocalStorageLogger = function (_LoggerInterface) {
     }], [{
         key: 'init',
         value: function init(database) {
-            if (!LocalStorageLogger.support) {
-                throwError('your platform does not support localstorage protocol.');
+            try {
+                if (!LocalStorageLogger.support) {
+                    throwError('your platform does not support localstorage protocol.');
+                }
+                LocalStorageLogger._database = database || 'logline';
+                if (!window.localStorage.getItem(LocalStorageLogger._database)) {
+                    window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
+                }
+                LocalStorageLogger.status = get(LocalStorageLogger.__proto__ || Object.getPrototypeOf(LocalStorageLogger), 'STATUS', this).INITED;
+            } catch (e) {
+                throwError('failed to init, ' + e.message);
             }
-            LocalStorageLogger._database = database || 'logline';
-            if (!window.localStorage.getItem(LocalStorageLogger._database)) {
-                window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
-            }
-            LocalStorageLogger.status = get(LocalStorageLogger.__proto__ || Object.getPrototypeOf(LocalStorageLogger), 'STATUS', this).INITED;
         }
 
         /**
@@ -769,26 +805,31 @@ var LocalStorageLogger = function (_LoggerInterface) {
     }, {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
-            var logs = JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)),
-                i;
+            var logs, i;
+            try {
+                logs = JSON.parse(window.localStorage.getItem(LocalStorageLogger._database));
 
-            from = Interface.transTimeFormat(from);
-            to = Interface.transTimeFormat(to);
+                from = Interface.transTimeFormat(from);
+                to = Interface.transTimeFormat(to);
 
-            for (i = 0; i < logs.length; i++) {
-                if (from && logs[i][0] < from || to && logs[i][0] > to) {
-                    continue;
+                for (i = 0; i < logs.length; i++) {
+                    if (from && logs[i][0] < from || to && logs[i][0] > to) {
+                        continue;
+                    }
+
+                    logs[i] = {
+                        time: logs[i][0],
+                        namespace: logs[i][1],
+                        level: logs[i][2],
+                        descriptor: logs[i][3],
+                        data: logs[i][4]
+                    };
                 }
-
-                logs[i] = {
-                    time: logs[i][0],
-                    namespace: logs[i][1],
-                    level: logs[i][2],
-                    descriptor: logs[i][3],
-                    data: logs[i][4]
-                };
+                readyFn(logs);
+            } catch (e) {
+                throwError('failed to get, ' + e.message);
+                readyFn([]);
             }
-            readyFn(logs);
         }
 
         /**
@@ -801,10 +842,15 @@ var LocalStorageLogger = function (_LoggerInterface) {
     }, {
         key: 'keep',
         value: function keep(daysToMaintain) {
-            var logs = !daysToMaintain ? [] : (window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : []).filter(function (log) {
-                return log.time >= Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
-            });
-            window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
+            var logs;
+            try {
+                logs = !daysToMaintain ? [] : (window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : []).filter(function (log) {
+                    return log.time >= Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
+                });
+                window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
+            } catch (e) {
+                throwError('failed to keep, ' + e.message);
+            }
         }
 
         /**
@@ -816,8 +862,12 @@ var LocalStorageLogger = function (_LoggerInterface) {
     }, {
         key: 'clean',
         value: function clean() {
-            delete LocalStorageLogger.status;
-            window.localStorage.removeItem(LocalStorageLogger._database);
+            try {
+                delete LocalStorageLogger.status;
+                window.localStorage.removeItem(LocalStorageLogger._database);
+            } catch (e) {
+                throwError('failed to clean, ' + e.message);
+            }
         }
 
         /**
@@ -888,11 +938,11 @@ var WebsqlLogger = function (_LoggerInterface) {
                 debug(this._namespace, level, descriptor, data);
                 WebsqlLogger._db.transaction(function (tx) {
                     tx.executeSql('INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)', [Date.now(), _this2._namespace, level, descriptor, data === undefined || data === '' ? '' : JSON.stringify(data) || ''], function () {/* empty func */}, function (tx, e) {
-                        throw e.message;
+                        throwError('write error, ' + e.message);
                     });
                 });
             } catch (e) {
-                throwError('error inserting record');
+                throwError('error inserting record, ' + e.message);
             }
         }
 
@@ -926,12 +976,13 @@ var WebsqlLogger = function (_LoggerInterface) {
                     tx.executeSql('CREATE TABLE IF NOT EXISTS logs (time, namespace, level, descriptor, data)', [], function () {
                         WebsqlLogger.status = get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', _this3).INITED;
                         WebsqlLogger._pool.consume();
-                    }, function () {
+                    }, function (tx, e) {
                         WebsqlLogger.status = get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', _this3).FAILED;
+                        throwError('unable to create table, ' + e.message);
                     });
                 });
             } catch (e) {
-                throwError('unable to init log database.');
+                throwError('unable to init log database, ' + e.message);
             }
         }
 
@@ -981,7 +1032,7 @@ var WebsqlLogger = function (_LoggerInterface) {
                         }
                         readyFn(logs);
                     }, function (tx, e) {
-                        throw e.message;
+                        throwError(e.message);
                     });
                 });
             } catch (e) {
@@ -1009,11 +1060,11 @@ var WebsqlLogger = function (_LoggerInterface) {
                 WebsqlLogger._db.transaction(function (tx) {
                     if (daysToMaintain) {
                         tx.executeSql('DELETE FROM logs WHERE time < ?', [Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000], function () {/* empty func */}, function (tx, e) {
-                            throw e.message;
+                            throwError(e.message);
                         });
                     } else {
                         tx.executeSql('DELETE FROM logs', [], function () {/* empty func */}, function (tx, e) {
-                            throw e.message;
+                            throwError(e.message);
                         });
                     }
                 });
@@ -1043,7 +1094,7 @@ var WebsqlLogger = function (_LoggerInterface) {
                     tx.executeSql('DROP TABLE logs', [], function () {
                         delete WebsqlLogger.status;
                     }, function (tx, e) {
-                        throw e.message;
+                        throwError(e.message);
                     });
                 });
             } catch (e) {
@@ -1078,8 +1129,12 @@ var Logline = function () {
         if (!(this instanceof Logline)) {
             return new Logline(namespace);
         }
-        Logline._checkProtocol();
-        return new Logline._protocol(namespace);
+        try {
+            Logline._checkProtocol();
+            return new Logline._protocol(namespace);
+        } catch (e) {
+            return new Interface(namespace);
+        }
     }
 
     /**
@@ -1121,7 +1176,7 @@ var Logline = function () {
                     }
                 }
 
-                throw new Error(protocols.join(', ').toLowerCase() + ' protocols are not supported on this platform');
+                throwError('protocols ' + protocols.join(', ').toLowerCase() + ' are not supported on this platform');
             }
         }
 

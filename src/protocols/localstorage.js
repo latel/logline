@@ -24,21 +24,22 @@ export default class LocalStorageLogger extends LoggerInterface {
      * @param {Mixed} [data] - additional data
      */
     _record(level, descriptor, data) {
-        var logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
-        logs.push([
-            Date.now(),
-            this._namespace,
-            level,
-            descriptor,
-            data
-        ]);
+        var logs;
         try {
+            logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
+            logs.push([
+                Date.now(),
+                this._namespace,
+                level,
+                descriptor,
+                data
+            ]);
             util.debug(this._namespace, level, descriptor, data);
             window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
         } catch (e) {
             window.localStorage.removeItem(LocalStorageLogger._database);
             window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
-            util.throwError('error inserting record, may be localStorage is full');
+            util.throwError('failed to write, may be localStorage is full, ' + e.message);
         }
     }
 
@@ -49,14 +50,18 @@ export default class LocalStorageLogger extends LoggerInterface {
      * @param {String} database - database name to use
      */
     static init(database) {
-        if (!LocalStorageLogger.support) {
-            util.throwError('your platform does not support localstorage protocol.');
+        try {
+            if (!LocalStorageLogger.support) {
+                util.throwError('your platform does not support localstorage protocol.');
+            }
+            LocalStorageLogger._database = database || 'logline';
+            if (!window.localStorage.getItem(LocalStorageLogger._database)) {
+                window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
+            }
+            LocalStorageLogger.status = super.STATUS.INITED;
+        } catch (e) {
+            util.throwError('failed to init, ' + e.message);
         }
-        LocalStorageLogger._database = database || 'logline';
-        if (!window.localStorage.getItem(LocalStorageLogger._database)) {
-            window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
-        }
-        LocalStorageLogger.status = super.STATUS.INITED;
     }
 
     /**
@@ -69,25 +74,31 @@ export default class LocalStorageLogger extends LoggerInterface {
      * @param {Function} readyFn - function to call back with logs as parameter
      */
     static get(from, to, readyFn) {
-        var logs = JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)), i;
+        var logs, i;
+        try {
+            logs = JSON.parse(window.localStorage.getItem(LocalStorageLogger._database));
 
-        from = LoggerInterface.transTimeFormat(from);
-        to = LoggerInterface.transTimeFormat(to);
+            from = LoggerInterface.transTimeFormat(from);
+            to = LoggerInterface.transTimeFormat(to);
 
-        for (i = 0; i < logs.length; i++) {
-            if ((from && logs[i][0] < from) || (to && logs[i][0] > to)) {
-                continue;
+            for (i = 0; i < logs.length; i++) {
+                if ((from && logs[i][0] < from) || (to && logs[i][0] > to)) {
+                    continue;
+                }
+
+                logs[i] = {
+                    time: logs[i][0],
+                    namespace: logs[i][1],
+                    level: logs[i][2],
+                    descriptor: logs[i][3],
+                    data: logs[i][4]
+                };
             }
-
-            logs[i] = {
-                time: logs[i][0],
-                namespace: logs[i][1],
-                level: logs[i][2],
-                descriptor: logs[i][3],
-                data: logs[i][4]
-            };
+            readyFn(logs);
+        } catch (e) {
+            util.throwError('failed to get, ' + e.message);
+            readyFn([]);
         }
-        readyFn(logs);
     }
 
     /**
@@ -97,10 +108,15 @@ export default class LocalStorageLogger extends LoggerInterface {
      * @param {Number} daysToMaintain - keep logs within days
      */
     static keep(daysToMaintain) {
-        var logs = !daysToMaintain ? [] : (window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : []).filter(log => {
-            return log.time >= (Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000);
-        });
-        window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
+        var logs;
+        try {
+            logs = !daysToMaintain ? [] : (window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : []).filter(log => {
+                return log.time >= (Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000);
+            });
+            window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
+        } catch (e) {
+            util.throwError('failed to keep, ' + e.message);
+        }
     }
 
     /**
@@ -109,8 +125,12 @@ export default class LocalStorageLogger extends LoggerInterface {
      * @static
      */
     static clean() {
-        delete LocalStorageLogger.status;
-        window.localStorage.removeItem(LocalStorageLogger._database);
+        try {
+            delete LocalStorageLogger.status;
+            window.localStorage.removeItem(LocalStorageLogger._database);
+        } catch (e) {
+            util.throwError('failed to clean, ' + e.message);
+        }
     }
 
     /**

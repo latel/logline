@@ -1,6 +1,6 @@
 {
   "name": "logline",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "logs for the frontend",
   "main": "dist/logline.min.js",
   "scripts": {
