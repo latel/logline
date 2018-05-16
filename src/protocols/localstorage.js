@@ -35,7 +35,11 @@ export default class LocalStorageLogger extends LoggerInterface {
         try {
             util.debug(this._namespace, level, descriptor, data);
             window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
-        } catch (e) { util.throwError('error inserting record'); }
+        } catch (e) {
+            window.localStorage.removeItem(LocalStorageLogger._database);
+            window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
+            util.throwError('error inserting record, may be localStorage is full');
+        }
     }
 
     /**
