@@ -16,8 +16,12 @@ class Logline {
         if (!(this instanceof Logline)) {
             return new Logline(namespace);
         }
-        Logline._checkProtocol();
-        return new Logline._protocol(namespace);
+        try {
+            Logline._checkProtocol();
+            return new Logline._protocol(namespace);
+        } catch (e) {
+            return new Interface(namespace);
+        }
     }
 
     /**
@@ -51,7 +55,7 @@ class Logline {
                 }
             }
 
-            throw new Error(protocols.join(', ').toLowerCase() + ' protocols are not supported on this platform');
+            util.throwError('protocols ' + protocols.join(', ').toLowerCase() + ' are not supported on this platform');
         }
     }
 
