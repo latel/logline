@@ -1,6 +1,6 @@
 {
   "name": "logline",
-  "version": "1.0.12",
+  "version": "1.1.0",
   "description": "logs for the frontend",
   "main": "dist/logline.min.js",
   "scripts": {
@@ -31,6 +31,8 @@
   "homepage": "https://github.com/latel/logline#readme",
   "devDependencies": {
     "babel-core": "^6.7.7",
+    "babel-plugin-transform-object-assign": "^6.22.0",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-es2015-rollup": "^3.0.0",
     "chai": "^3.5.0",
     "colors": "^1.1.2",
@@ -53,5 +55,9 @@
     "rollup-plugin-serve": "^0.4.2",
     "rollup-plugin-uglify": "^1.0.1",
     "rollup-watch": "^4.3.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.10",
+    "lodash-es": "^4.17.10"
   }
 }

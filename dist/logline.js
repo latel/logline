@@ -50,7 +50,21 @@ var createClass = function () {
 
 
 
-var get = function get(object, property, receiver) {
+var _extends = Object.assign || function (target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i];
+
+    for (var key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        target[key] = source[key];
+      }
+    }
+  }
+
+  return target;
+};
+
+var get$1 = function get(object, property, receiver) {
   if (object === null) object = Function.prototype;
   var desc = Object.getOwnPropertyDescriptor(object, property);
 
@@ -109,6 +123,30 @@ var possibleConstructorReturn = function (self, call) {
   return call && (typeof call === "object" || typeof call === "function") ? call : self;
 };
 
+var DEFAULT_CONFIG = {
+    verbose: true
+};
+
+var store = _extends({}, DEFAULT_CONFIG);
+
+function get$$1(key) {
+    return key ? store[key] : store;
+}
+
+function set$$1(key, value) {
+    var changes = {};
+    if (typeof key === 'string') {
+        changes[key] = value;
+    } else if (Object.prototype.toString.call(key) === '[object Object]') {
+        changes = key;
+    }
+    _extends(store, changes);
+}
+
+var config = set$$1;
+config.set = set$$1;
+config.get = get$$1;
+
 var HAS_CONSOLE = window.console;
 var LEVEL_CONSOLE_MAP = {
     INFO: 'log',
@@ -125,7 +163,7 @@ function throwError(errMessage) {
 // print debug info in develper's console
 // TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 function debug(namespace, level, descriptor, data) {
-    if (HAS_CONSOLE && window.Logline && window.Logline.env && window.Logline.env.verbose) {
+    if (HAS_CONSOLE && config.get().verbose) {
         window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](namespace + ' ' + level.toUpperCase() + ' ' + descriptor, data || '');
     }
 }
@@ -495,7 +533,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
 
                 IndexedDBLogger._pool = IndexedDBLogger._pool || new Pool();
                 IndexedDBLogger._database = database || 'logline';
-                IndexedDBLogger.status = get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITING;
+                IndexedDBLogger.status = get$1(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITING;
 
                 IndexedDBLogger.request = window.indexedDB.open(IndexedDBLogger._database);
                 IndexedDBLogger.request.onerror = function (event) {
@@ -503,7 +541,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
                 };
                 IndexedDBLogger.request.onsuccess = function (event) {
                     IndexedDBLogger.db = event.target.result;
-                    IndexedDBLogger.status = get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', _this3).INITED;
+                    IndexedDBLogger.status = get$1(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', _this3).INITED;
                     IndexedDBLogger._pool.consume();
                     // globally handle db request errors
                     IndexedDBLogger.db.onerror = function (event) {
@@ -538,7 +576,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
             try {
-                if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
+                if (IndexedDBLogger.status !== get$1(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
                     return IndexedDBLogger._pool.push(function () {
                         return IndexedDBLogger.get(from, to, readyFn);
                     });
@@ -605,7 +643,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'keep',
         value: function keep(daysToMaintain) {
             try {
-                if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
+                if (IndexedDBLogger.status !== get$1(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
                     return IndexedDBLogger._pool.push(function () {
                         return IndexedDBLogger.keep(daysToMaintain);
                     });
@@ -648,7 +686,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'clean',
         value: function clean() {
             try {
-                if (IndexedDBLogger.status !== get(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
+                if (IndexedDBLogger.status !== get$1(IndexedDBLogger.__proto__ || Object.getPrototypeOf(IndexedDBLogger), 'STATUS', this).INITED) {
                     return IndexedDBLogger._pool.push(function () {
                         return IndexedDBLogger.clean();
                     });
@@ -784,7 +822,7 @@ var LocalStorageLogger = function (_LoggerInterface) {
                 if (!window.localStorage.getItem(LocalStorageLogger._database)) {
                     window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
                 }
-                LocalStorageLogger.status = get(LocalStorageLogger.__proto__ || Object.getPrototypeOf(LocalStorageLogger), 'STATUS', this).INITED;
+                LocalStorageLogger.status = get$1(LocalStorageLogger.__proto__ || Object.getPrototypeOf(LocalStorageLogger), 'STATUS', this).INITED;
             } catch (e) {
                 throwError('failed to init, ' + e.message);
             }
@@ -966,16 +1004,16 @@ var WebsqlLogger = function (_LoggerInterface) {
 
             WebsqlLogger._pool = WebsqlLogger._pool || new Pool();
             WebsqlLogger._database = database || 'logline';
-            WebsqlLogger.status = get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITING;
+            WebsqlLogger.status = get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITING;
 
             try {
                 WebsqlLogger._db = window.openDatabase(WebsqlLogger._database, '1.0', 'cats loves logs', 4.85 * 1024 * 1024);
                 WebsqlLogger._db.transaction(function (tx) {
                     tx.executeSql('CREATE TABLE IF NOT EXISTS logs (time, namespace, level, descriptor, data)', [], function () {
-                        WebsqlLogger.status = get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', _this3).INITED;
+                        WebsqlLogger.status = get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', _this3).INITED;
                         WebsqlLogger._pool.consume();
                     }, function (tx, e) {
-                        WebsqlLogger.status = get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', _this3).FAILED;
+                        WebsqlLogger.status = get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', _this3).FAILED;
                         throwError('unable to create table, ' + e.message);
                     });
                 });
@@ -997,7 +1035,7 @@ var WebsqlLogger = function (_LoggerInterface) {
     }, {
         key: 'get',
         value: function get$$1(from, to, readyFn) {
-            if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
+            if (WebsqlLogger.status !== get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
                 return WebsqlLogger._pool.push(function () {
                     return WebsqlLogger.get(from, to, readyFn);
                 });
@@ -1048,7 +1086,7 @@ var WebsqlLogger = function (_LoggerInterface) {
     }, {
         key: 'keep',
         value: function keep(daysToMaintain) {
-            if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
+            if (WebsqlLogger.status !== get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
                 return WebsqlLogger._pool.push(function () {
                     return WebsqlLogger.keep(daysToMaintain);
                 });
@@ -1080,7 +1118,7 @@ var WebsqlLogger = function (_LoggerInterface) {
     }, {
         key: 'clean',
         value: function clean() {
-            if (WebsqlLogger.status !== get(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
+            if (WebsqlLogger.status !== get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
                 WebsqlLogger._pool.push(function () {
                     return WebsqlLogger.clean();
                 });
@@ -1136,17 +1174,26 @@ var Logline = function () {
     }
 
     /**
-     * choose a protocol to initialize
-     * @method _initProtocol
-     * @private
-     * @static
-     * @param {Object Protocol Class} protocol - protocol to use, must under Logline.PROTOCOL
-     * @return {Object} Logline
+     * change config
+     * @method config
+     * @param {String|Object} key - config key, or config object
+     * @param {Any} [value] - new config value
+     * @return {Void}
      */
 
 
     createClass(Logline, null, [{
         key: '_initProtocol',
+
+
+        /**
+         * choose a protocol to initialize
+         * @method _initProtocol
+         * @private
+         * @static
+         * @param {Object Protocol Class} protocol - protocol to use, must under Logline.PROTOCOL
+         * @return {Object} Logline
+         */
         value: function _initProtocol(protocol) {
             Logline._protocol = protocol;
             Logline._protocol.init(Logline._database || 'logline');
@@ -1292,6 +1339,11 @@ var Logline = function () {
         key: 'database',
         value: function database(name) {
             Logline._database = name;
+        }
+    }, {
+        key: 'config',
+        get: function get$$1() {
+            return config;
         }
     }]);
     return Logline;

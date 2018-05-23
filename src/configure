@@ -3,6 +3,7 @@ import Interface from './protocols/interface';
 import {{upper this false}}Logger from './protocols/{{this}}';
 {{/each}}
 import * as util from './lib/util';
+import config from './lib/config';
 
 
 class Logline {
@@ -13,8 +14,26 @@ class Logline {
      * @return {Object Protocol Instance}
      */
     constructor(namespace) {
-        Logline._checkProtocol();
-        return new Logline._protocol(namespace);
+        if (!(this instanceof Logline)) {
+            return new Logline(namespace);
+        }
+        try {
+            Logline._checkProtocol();
+            return new Logline._protocol(namespace);
+        } catch (e) {
+            return new Interface(namespace);
+        }
+    }
+
+    /**
+     * change config
+     * @method config
+     * @param {String|Object} key - config key, or config object
+     * @param {Any} [value] - new config value
+     * @return {Void}
+     */
+    static get config() {
+        return config;
     }
 
     /**
@@ -48,7 +67,7 @@ class Logline {
                 }
             }
 
-            throw new Error(protocols.join(', ').toLowerCase() + ' protocols are not supported on this platform');
+            util.throwError('protocols ' + protocols.join(', ').toLowerCase() + ' are not supported on this platform');
         }
     }
 
@@ -62,7 +81,6 @@ class Logline {
      * @param {Function} readyFn - function to call back with logs as parameter
      */
     static get(from, to, readyFn) {
-        var now = Date.now();
         Logline._checkProtocol();
 
         switch (arguments.length) {

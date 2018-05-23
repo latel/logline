@@ -15,7 +15,8 @@ export default {
     sourceMap: process.env.NODE_ENV === 'production',
     plugins: [
         babel({
-            exclude: 'node_modules/**'
+            exclude: 'node_modules/**',
+            runtimeHelpers: true
         }),
         (process.env.NODE_ENV === 'production' && uglify()),
         license({
