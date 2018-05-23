@@ -14,7 +14,8 @@
         "seajs": true,
         "G_SPEED_TTL": true,
         "iScroll": true,
-        "Promise": true
+        "Promise": true,
+        "Logline": true
     },
     "rules": {
         "strict": [1, "function"],                // 要求严格模式

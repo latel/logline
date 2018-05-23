@@ -1,3 +1,5 @@
+import config from './config';
+
 const HAS_CONSOLE = window.console;
 const LEVEL_CONSOLE_MAP = {
     INFO: 'log',
@@ -14,7 +16,7 @@ export function throwError(errMessage) {
 // print debug info in develper's console
 // TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 export function debug(namespace, level, descriptor, data) {
-    if (HAS_CONSOLE && window.Logline && window.Logline.env && window.Logline.env.verbose) {
+    if (HAS_CONSOLE && config.get().verbose) {
         window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](`${namespace} ${level.toUpperCase()} ${descriptor}`, data || '');
     }
 }

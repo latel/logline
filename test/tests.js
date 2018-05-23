@@ -1,6 +1,8 @@
 var assert = window.chai.assert;
 
-Logline.env.verbose = false;
+Logline.config({
+    verbose: false
+});
 
 var readyTimer, repeated, isReady = function(readyFn) {
     clearInterval(readyTimer), repeated = 0;

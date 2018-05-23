@@ -1,3 +1,14 @@
 {
-  "presets": [ "es2015-rollup" ]
+    "presets": [
+        [
+            "env",
+            {
+                "modules": false
+            }
+        ]
+    ],
+    "plugins": [
+        "external-helpers",
+        "transform-object-assign"
+    ]
 }

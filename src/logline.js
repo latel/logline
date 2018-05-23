@@ -3,6 +3,7 @@ import IndexeddbLogger from './protocols/indexeddb';
 import LocalstorageLogger from './protocols/localstorage';
 import WebsqlLogger from './protocols/websql';
 import * as util from './lib/util';
+import config from './lib/config';
 
 
 class Logline {
@@ -22,6 +23,17 @@ class Logline {
         } catch (e) {
             return new Interface(namespace);
         }
+    }
+
+    /**
+     * change config
+     * @method config
+     * @param {String|Object} key - config key, or config object
+     * @param {Any} [value] - new config value
+     * @return {Void}
+     */
+    static get config() {
+        return config;
     }
 
     /**
