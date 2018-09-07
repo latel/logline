@@ -2,6 +2,8 @@ import LoggerInterface from './interface';
 import Pool from '../lib/pool';
 import * as util from '../lib/util';
 
+const READ_WRITE = 'readwrite';
+
 /**
  * IndexedDB protocol
  * @class IndexedDBLogger
@@ -35,7 +37,7 @@ export default class IndexedDBLogger extends LoggerInterface {
             }
 
             util.debug(this._namespace, level, descriptor, data);
-            let transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
+            let transaction = IndexedDBLogger.db.transaction(['logs'], READ_WRITE || 'readwrite');
             transaction.onerror = event => util.throwError(event.target.error);
 
             let store = transaction.objectStore('logs');
@@ -176,7 +178,7 @@ export default class IndexedDBLogger extends LoggerInterface {
                 return IndexedDBLogger._pool.push(() => IndexedDBLogger.keep(daysToMaintain));
             }
 
-            let store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
+            let store = IndexedDBLogger._getTransactionStore(READ_WRITE);
             if (!store) {
                 return false;
             }
@@ -236,7 +238,7 @@ export default class IndexedDBLogger extends LoggerInterface {
     static _getTransactionStore(mode) {
         try {
             if (IndexedDBLogger.db) {
-                let transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE);
+                let transaction = IndexedDBLogger.db.transaction(['logs'], mode || READ_WRITE);
                 transaction.onerror = event => util.throwError(event.target.error);
                 return transaction.objectStore('logs');
             }
@@ -255,10 +257,6 @@ export default class IndexedDBLogger extends LoggerInterface {
      */
     static get support() {
         const support = !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
-        if (support) {
-            window.IDBTransaction.READ_WRITE = 'readwrite';
-            window.IDBTransaction.READ_ONLY = 'readonly';
-        }
         return support;
     }
 }
