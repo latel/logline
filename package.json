@@ -1,6 +1,6 @@
 {
   "name": "logline",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "logs for the frontend",
   "main": "dist/logline.min.js",
   "scripts": {
@@ -31,6 +31,7 @@
   "homepage": "https://github.com/latel/logline#readme",
   "devDependencies": {
     "babel-core": "^6.7.7",
+    "babel-plugin-external-helpers": "^6.22.0",
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-preset-env": "^1.7.0",
     "chai": "^3.5.0",
@@ -42,11 +43,13 @@
     "gulp-compile-handlebars": "^0.6.1",
     "gulp-rename": "^1.2.2",
     "html-loader": "^0.4.3",
+    "install": "^0.12.1",
     "jsonfile": "^2.4.0",
     "minimist": "^1.2.0",
     "mocha": "^2.5.3",
     "mocha-headless-chrome": "1.7.1",
     "moment": "^2.13.0",
+    "npm": "^6.4.1",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-license": "^0.2.0",

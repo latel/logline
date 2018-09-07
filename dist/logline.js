@@ -433,6 +433,8 @@ var Pool = function () {
     return Pool;
 }();
 
+var READ_WRITE = 'readwrite';
+
 /**
  * IndexedDB protocol
  * @class IndexedDBLogger
@@ -485,7 +487,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
                 }
 
                 debug(this._namespace, level, descriptor, data);
-                var transaction = IndexedDBLogger.db.transaction(['logs'], IDBTransaction.READ_WRITE || 'readwrite');
+                var transaction = IndexedDBLogger.db.transaction(['logs'], READ_WRITE || 'readwrite');
                 transaction.onerror = function (event) {
                     return throwError(event.target.error);
                 };
@@ -649,7 +651,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
                     });
                 }
 
-                var store = IndexedDBLogger._getTransactionStore(IDBTransaction.READ_WRITE);
+                var store = IndexedDBLogger._getTransactionStore(READ_WRITE);
                 if (!store) {
                     return false;
                 }
@@ -722,7 +724,7 @@ var IndexedDBLogger = function (_LoggerInterface) {
         value: function _getTransactionStore(mode) {
             try {
                 if (IndexedDBLogger.db) {
-                    var transaction = IndexedDBLogger.db.transaction(['logs'], mode || IDBTransaction.READ_WRITE);
+                    var transaction = IndexedDBLogger.db.transaction(['logs'], mode || READ_WRITE);
                     transaction.onerror = function (event) {
                         return throwError(event.target.error);
                     };
@@ -745,10 +747,6 @@ var IndexedDBLogger = function (_LoggerInterface) {
         key: 'support',
         get: function get$$1() {
             var support = !!(window.indexedDB && window.IDBTransaction && window.IDBKeyRange);
-            if (support) {
-                window.IDBTransaction.READ_WRITE = 'readwrite';
-                window.IDBTransaction.READ_ONLY = 'readonly';
-            }
             return support;
         }
     }]);
