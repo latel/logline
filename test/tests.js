@@ -5,7 +5,8 @@ Logline.config({
 });
 
 var readyTimer, repeated, isReady = function(readyFn) {
-    clearInterval(readyTimer), repeated = 0;
+    clearInterval(readyTimer);
+    repeated = 0;
     readyTimer = setInterval(function() {
         var ready = 0, i;
         if (repeated++ > 20) {
@@ -58,10 +59,12 @@ describe('Logline', function() {
 
     it('should be able to specialfy any available protocols', function(done) {
         for (var i = 0; i < Object.keys(window.Logline.PROTOCOL).length; i++) {
-            window.Logline.using(window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]]);
-            assert.equal(window.Logline._protocol, window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]], 'protocol should be properly setted');
-            window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]].clean();
-            delete window.Logline._protocol;
+            if (window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]].support) {
+                window.Logline.using(window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]]);
+                assert.equal(window.Logline._protocol, window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]], 'protocol should be properly setted');
+                window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]].clean();
+                delete window.Logline._protocol;
+            }
         }
         done();
     });
@@ -69,12 +72,14 @@ describe('Logline', function() {
     it('should be able to create any available protocols instance', function(done) {
         isReady(function() {
             for (var i = 0; i < Object.keys(window.Logline.PROTOCOL).length; i++) {
-                window.Logline.using(window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]]);
-                var logger = new window.Logline('a');
-                assert.equal(window.Logline._protocol, window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]], 'protocol should be properly setted');
-                assert.instanceOf(logger, window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]], 'log instance should be correctly created');
-                window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]].clean();
-                delete window.Logline._protocol;
+                if (window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]].support) {
+                    window.Logline.using(window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]]);
+                    var logger = new window.Logline('a');
+                    assert.equal(window.Logline._protocol, window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]], 'protocol should be properly setted');
+                    assert.instanceOf(logger, window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]], 'log instance should be correctly created');
+                    window.Logline.PROTOCOL[Object.keys(window.Logline.PROTOCOL)[i]].clean();
+                    delete window.Logline._protocol;
+                }
             }
             done();
         });
