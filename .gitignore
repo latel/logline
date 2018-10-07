@@ -13,3 +13,6 @@ bower_components
 
 # system
 .DS_Store
+
+# typescript
+.rpt2_cache

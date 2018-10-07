@@ -167,32 +167,31 @@
     return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
   }
 
-  function getNextLunchtime (hours, minutes) {
-  	var lunchtime = new Date();
-
-  	lunchtime.setHours(hours);
-  	lunchtime.setMinutes(minutes);
-  	lunchtime.setSeconds(0);
-  	lunchtime.setMilliseconds(0);
-
-  	// if we've already had lunch today, start planning
-  	// tomorrow's lunch
-  	if (lunchtime < Date.now()) lunchtime.setDate(lunchtime.getDate() + 1);
-
-  	return lunchtime;
+  function getNextLunchtime(hours, minutes) {
+      var lunchtime = new Date();
+      lunchtime.setHours(hours);
+      lunchtime.setMinutes(minutes);
+      lunchtime.setSeconds(0);
+      lunchtime.setMilliseconds(0);
+      // if we've already had lunch today, start planning
+      // tomorrow's lunch
+      if (lunchtime < Date.now())
+          lunchtime.setDate(lunchtime.getDate() + 1);
+      return lunchtime;
   }
 
   function millisecondsUntil(date) {
-  	return date - Date.now();
+      return date - Date.now();
   }
 
   function howLongUntilLunch(hours, minutes) {
-  	// lunch is at 12.30
-  	if (hours === undefined) hours = 12;
-  	if (minutes === undefined) minutes = 30;
-
-  	var millisecondsUntilLunchTime = millisecondsUntil(getNextLunchtime(hours, minutes));
-  	return _ms_2_1_1_ms(millisecondsUntilLunchTime, { long: true });
+      // lunch is at 12.30
+      if (hours === undefined)
+          hours = 12;
+      if (minutes === undefined)
+          minutes = 30;
+      var millisecondsUntilLunchTime = millisecondsUntil(getNextLunchtime(hours, minutes));
+      return _ms_2_1_1_ms(millisecondsUntilLunchTime, { long: true });
   }
 
   return howLongUntilLunch;

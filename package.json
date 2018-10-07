@@ -1,16 +1,13 @@
 {
-  "name": "rollup-starter-lib",
-  "version": "1.0.0",
-  "main": "dist/how-long-till-lunch.cjs.js",
-  "module": "dist/how-long-till-lunch.esm.js",
-  "browser": "dist/how-long-till-lunch.umd.js",
-  "dependencies": {
-    "ms": "^2.0.0"
-  },
+  "name": "logline",
+  "version": "1.2.0",
+  "main": "dist/logline.js",
   "devDependencies": {
     "rollup": "^0.66.0",
     "rollup-plugin-commonjs": "^9.1.0",
-    "rollup-plugin-node-resolve": "^3.0.0"
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-typescript2": "^0.17.1",
+    "typescript": "^3.1.1"
   },
   "scripts": {
     "build": "rollup -c",
