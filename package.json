@@ -1,10 +1,16 @@
 {
   "name": "logline",
   "version": "1.2.0",
+  "description": "client-side frontend logger agent",
   "main": "dist/logline.js",
   "devDependencies": {
+    "@types/chai": "^4.1.6",
+    "@types/mocha": "^5.2.5",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
     "rollup": "^0.66.0",
     "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-typescript2": "^0.17.1",
     "typescript": "^3.1.1"
@@ -12,7 +18,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "node test/test.js",
+    "test": "mocha test/*.spec.js",
     "pretest": "npm run build"
   },
   "files": [
