@@ -164,7 +164,7 @@ function throwError(errMessage) {
 // TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 function debug(namespace, level, descriptor, data) {
     if (HAS_CONSOLE && config.get().verbose) {
-        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](namespace + ' ' + level.toUpperCase() + ' ' + descriptor, data || '');
+        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO]('[' + namespace + '] ' + level.toUpperCase() + ' ' + descriptor, data || '');
     }
 }
 
