@@ -109,7 +109,7 @@ spaLog.error('init.failed', {
 });
 
 // 不包含数据的，描述为 outdated 的记录
-sdkLog.warning('outdated');
+sdkLog.warn('outdated');
 
 // 包含错误描述数据，描述为 system.vanish 的记录
 sdkLog.critical('system.vanish', {
