@@ -164,7 +164,7 @@ function throwError(errMessage) {
 // TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 function debug(namespace, level, descriptor, data) {
     if (HAS_CONSOLE && config.get().verbose) {
-        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO]('[' + namespace + '] ' + level.toUpperCase() + ' ' + descriptor, data || '');
+        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](new Date().toLocaleString(), '[' + namespace + '] ' + level.toUpperCase() + ' ' + descriptor, data || '');
     }
 }
 
@@ -211,12 +211,13 @@ var Interface = function () {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
 
 
     createClass(Interface, [{
         key: '_record',
-        value: function _record(level, descriptor, data) {
+        value: function _record(level, descriptor, data, develop) {
             throwError('method _record is not implemented.');
         }
 
@@ -467,26 +468,28 @@ var IndexedDBLogger = function (_LoggerInterface) {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
 
 
     createClass(IndexedDBLogger, [{
         key: '_record',
-        value: function _record(level, descriptor, data) {
+        value: function _record(level, descriptor, data, develop) {
             var _this2 = this;
 
             try {
                 if (IndexedDBLogger.status !== Interface.STATUS.INITED) {
                     IndexedDBLogger._pool.push(function () {
-                        return _this2._record(level, descriptor, data);
+                        return _this2._record(level, descriptor, data, develop);
                     });
                     if (IndexedDBLogger.status !== Interface.STATUS.INITING) {
                         IndexedDBLogger.init();
                     }
                     return;
                 }
-
-                debug(this._namespace, level, descriptor, data);
+                if (develop) {
+                    debug(this._namespace, level, descriptor, data);
+                }
                 var transaction = IndexedDBLogger.db.transaction(['logs'], READ_WRITE || 'readwrite');
                 transaction.onerror = function (event) {
                     return throwError(event.target.error);
@@ -753,6 +756,176 @@ var IndexedDBLogger = function (_LoggerInterface) {
     return IndexedDBLogger;
 }(Interface);
 
+/**
+ * Localstorage protocol
+ * @class LocalStorageLogger
+ */
+
+var LocalStorageLogger = function (_LoggerInterface) {
+    inherits(LocalStorageLogger, _LoggerInterface);
+
+    /**
+     * Localstorage protocol constructor
+     * @constructor
+     * @param {String} namespace - namespace to use
+     */
+    function LocalStorageLogger() {
+        var _ref;
+
+        classCallCheck(this, LocalStorageLogger);
+
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+        }
+
+        return possibleConstructorReturn(this, (_ref = LocalStorageLogger.__proto__ || Object.getPrototypeOf(LocalStorageLogger)).call.apply(_ref, [this].concat(args)));
+    }
+
+    /**
+     * add a log record
+     * @method _reocrd
+     * @private
+     * @parma {String} level - log level
+     * @param {String} descriptor - to speed up search and improve understanding
+     * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
+     */
+
+
+    createClass(LocalStorageLogger, [{
+        key: '_record',
+        value: function _record(level, descriptor, data, develop) {
+            var logs;
+            try {
+                logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
+                logs.push([Date.now(), this._namespace, level, descriptor, data]);
+                if (develop) {
+                    debug(this._namespace, level, descriptor, data);
+                }
+                window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
+            } catch (e) {
+                window.localStorage.removeItem(LocalStorageLogger._database);
+                window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
+                throwError('failed to write, may be localStorage is full, ' + e.message);
+            }
+        }
+
+        /**
+         * initialize protocol
+         * @method init
+         * @static
+         * @param {String} database - database name to use
+         */
+
+    }], [{
+        key: 'init',
+        value: function init(database) {
+            try {
+                if (!LocalStorageLogger.support) {
+                    throwError('your platform does not support localstorage protocol.');
+                }
+                LocalStorageLogger._database = database || 'logline';
+                if (!window.localStorage.getItem(LocalStorageLogger._database)) {
+                    window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify([]));
+                }
+                LocalStorageLogger.status = get$1(LocalStorageLogger.__proto__ || Object.getPrototypeOf(LocalStorageLogger), 'STATUS', this).INITED;
+            } catch (e) {
+                throwError('failed to init, ' + e.message);
+            }
+        }
+
+        /**
+         * get logs in range
+         * if from and end is not defined, will fetch full log
+         * @method get
+         * @static
+         * @param {String} from - time from, unix time stamp or falsy
+         * @param {String} to - time end, unix time stamp or falsy
+         * @param {Function} readyFn - function to call back with logs as parameter
+         */
+
+    }, {
+        key: 'get',
+        value: function get$$1(from, to, readyFn) {
+            var logs, i;
+            try {
+                logs = JSON.parse(window.localStorage.getItem(LocalStorageLogger._database));
+
+                from = Interface.transTimeFormat(from);
+                to = Interface.transTimeFormat(to);
+
+                for (i = 0; i < logs.length; i++) {
+                    if (from && logs[i][0] < from || to && logs[i][0] > to) {
+                        continue;
+                    }
+
+                    logs[i] = {
+                        time: logs[i][0],
+                        namespace: logs[i][1],
+                        level: logs[i][2],
+                        descriptor: logs[i][3],
+                        data: logs[i][4]
+                    };
+                }
+                readyFn(logs);
+            } catch (e) {
+                throwError('failed to get, ' + e.message);
+                readyFn([]);
+            }
+        }
+
+        /**
+         * clean logs = keep limited logs
+         * @method keep
+         * @static
+         * @param {Number} daysToMaintain - keep logs within days
+         */
+
+    }, {
+        key: 'keep',
+        value: function keep(daysToMaintain) {
+            var logs;
+            try {
+                logs = !daysToMaintain ? [] : (window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : []).filter(function (log) {
+                    return log.time >= Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000;
+                });
+                window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
+            } catch (e) {
+                throwError('failed to keep, ' + e.message);
+            }
+        }
+
+        /**
+         * delete log database
+         * @method clean
+         * @static
+         */
+
+    }, {
+        key: 'clean',
+        value: function clean() {
+            try {
+                delete LocalStorageLogger.status;
+                window.localStorage.removeItem(LocalStorageLogger._database);
+            } catch (e) {
+                throwError('failed to clean, ' + e.message);
+            }
+        }
+
+        /**
+         * detect support situation
+         * @prop {Boolean} support
+         */
+
+    }, {
+        key: 'support',
+        get: function get$$1() {
+            return 'localStorage' in window;
+        }
+    }]);
+    return LocalStorageLogger;
+}(Interface);
+
 var Logline = function () {
     /**
      * Logline constructor
@@ -915,7 +1088,7 @@ var Logline = function () {
         key: 'using',
         value: function using(protocol, database) {
             // protocol unavailable is not allowed
-            if (-1 === [IndexedDBLogger].indexOf(protocol)) {
+            if (-1 === [IndexedDBLogger, LocalStorageLogger].indexOf(protocol)) {
                 throwError('specialfied protocol ' + (protocol ? protocol + ' ' : '') + 'is not available');
             }
 
@@ -954,7 +1127,8 @@ var Logline = function () {
 
 
 Logline.PROTOCOL = {
-    INDEXEDDB: IndexedDBLogger
+    INDEXEDDB: IndexedDBLogger,
+    LOCALSTORAGE: LocalStorageLogger
 };
 
 // export protocol interface for user custom implements
