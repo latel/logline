@@ -3,6 +3,8 @@
   "version": "1.2.0",
   "description": "client-side frontend logger agent",
   "main": "dist/logline.js",
+  "module": "dist/logline-esm.js",
+  "typings": "index.d.ts",
   "devDependencies": {
     "@types/chai": "^4.1.6",
     "@types/mocha": "^5.2.5",

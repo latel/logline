@@ -21,17 +21,14 @@ declare enum LogLevel {
     CRITICAL,
 }
 
-interface Setting {
-    // record logs beyond which log level
-    logLevel: LogLevel;
-    // record logs within certain modules, use glob style matches
-    logModule: string[];
-    // special a database name incase duplicated as web-storage is domain shared
-    database: string;
-}
-
-interface SettingPartial {
+export interface Setting {
+    // recording logs beyond which log level
     logLevel?: LogLevel;
-    logModule?: string[];
+    // recording logs includes certain modules, use glob style syntax,
+    // has larger priority than logModuleExcludes
+    logModuleIncludes?: string[];
+    // recording logs excludes certain modules, use glob style syntax
+    logModuleExcludes?: string[];
+    // special a database name in case of duplicated as web-storage is domain shared
     database?: string;
 }
