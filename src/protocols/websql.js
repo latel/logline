@@ -23,10 +23,11 @@ export default class WebsqlLogger extends LoggerInterface {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
-    _record(level, descriptor, data) {
+    _record(level, descriptor, data, develop) {
         if (WebsqlLogger.status !== LoggerInterface.STATUS.INITED) {
-            WebsqlLogger._pool.push(() => this._record(level, descriptor, data));
+            WebsqlLogger._pool.push(() => this._record(level, descriptor, data, develop));
             if (WebsqlLogger.status !== LoggerInterface.STATUS.INITING) {
                 WebsqlLogger.init();
             }
@@ -34,7 +35,9 @@ export default class WebsqlLogger extends LoggerInterface {
         }
 
         try {
-            util.debug(this._namespace, level, descriptor, data);
+            if (develop) {
+                util.debug(this._namespace, level, descriptor, data);
+            }
             WebsqlLogger._db.transaction(tx => {
                 tx.executeSql(
                     'INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)',

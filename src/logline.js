@@ -1,7 +1,6 @@
 import Interface from './protocols/interface';
 import IndexeddbLogger from './protocols/indexeddb';
 import LocalstorageLogger from './protocols/localstorage';
-import WebsqlLogger from './protocols/websql';
 import * as util from './lib/util';
 import config from './lib/config';
 
@@ -145,7 +144,7 @@ class Logline {
      */
     static using(protocol, database) {
         // protocol unavailable is not allowed
-        if (-1 === [IndexeddbLogger, LocalstorageLogger, WebsqlLogger].indexOf(protocol)) {
+        if (-1 === [IndexeddbLogger, LocalstorageLogger].indexOf(protocol)) {
             util.throwError('specialfied protocol ' + (protocol ? (protocol + ' ') : '') + 'is not available');
         }
 
@@ -173,8 +172,7 @@ class Logline {
 // export protocols for modification and mounting
 Logline.PROTOCOL = {
     INDEXEDDB: IndexeddbLogger,
-    LOCALSTORAGE: LocalstorageLogger,
-    WEBSQL: WebsqlLogger
+    LOCALSTORAGE: LocalstorageLogger
 };
 
 // export protocol interface for user custom implements

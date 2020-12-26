@@ -21,8 +21,9 @@ export default class Interface {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
-    _record(level, descriptor, data) {
+    _record(level, descriptor, data, develop) {
         util.throwError('method _record is not implemented.');
     }
 

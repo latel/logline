@@ -22,8 +22,9 @@ export default class LocalStorageLogger extends LoggerInterface {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
-    _record(level, descriptor, data) {
+    _record(level, descriptor, data, develop) {
         var logs;
         try {
             logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
@@ -34,7 +35,9 @@ export default class LocalStorageLogger extends LoggerInterface {
                 descriptor,
                 data
             ]);
-            util.debug(this._namespace, level, descriptor, data);
+            if (develop) {
+                util.debug(this._namespace, level, descriptor, data);
+            }
             window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
         } catch (e) {
             window.localStorage.removeItem(LocalStorageLogger._database);

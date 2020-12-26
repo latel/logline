@@ -164,7 +164,7 @@ function throwError(errMessage) {
 // TODO: if WechatFE/vConsole is detected, will not use %c feature, as it is not well supported
 function debug(namespace, level, descriptor, data) {
     if (HAS_CONSOLE && config.get().verbose) {
-        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO]('[' + namespace + '] ' + level.toUpperCase() + ' ' + descriptor, data || '');
+        window.console[LEVEL_CONSOLE_MAP[level.toUpperCase()] || LEVEL_CONSOLE_MAP.INFO](new Date().toLocaleString(), '[' + namespace + '] ' + level.toUpperCase() + ' ' + descriptor, data || '');
     }
 }
 
@@ -211,12 +211,13 @@ var Interface = function () {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
 
 
     createClass(Interface, [{
         key: '_record',
-        value: function _record(level, descriptor, data) {
+        value: function _record(level, descriptor, data, develop) {
             throwError('method _record is not implemented.');
         }
 
@@ -467,26 +468,28 @@ var IndexedDBLogger = function (_LoggerInterface) {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
 
 
     createClass(IndexedDBLogger, [{
         key: '_record',
-        value: function _record(level, descriptor, data) {
+        value: function _record(level, descriptor, data, develop) {
             var _this2 = this;
 
             try {
                 if (IndexedDBLogger.status !== Interface.STATUS.INITED) {
                     IndexedDBLogger._pool.push(function () {
-                        return _this2._record(level, descriptor, data);
+                        return _this2._record(level, descriptor, data, develop);
                     });
                     if (IndexedDBLogger.status !== Interface.STATUS.INITING) {
                         IndexedDBLogger.init();
                     }
                     return;
                 }
-
-                debug(this._namespace, level, descriptor, data);
+                if (develop) {
+                    debug(this._namespace, level, descriptor, data);
+                }
                 var transaction = IndexedDBLogger.db.transaction(['logs'], READ_WRITE || 'readwrite');
                 transaction.onerror = function (event) {
                     return throwError(event.target.error);
@@ -785,17 +788,20 @@ var LocalStorageLogger = function (_LoggerInterface) {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
 
 
     createClass(LocalStorageLogger, [{
         key: '_record',
-        value: function _record(level, descriptor, data) {
+        value: function _record(level, descriptor, data, develop) {
             var logs;
             try {
                 logs = window.localStorage.getItem(LocalStorageLogger._database) ? JSON.parse(window.localStorage.getItem(LocalStorageLogger._database)) : [];
                 logs.push([Date.now(), this._namespace, level, descriptor, data]);
-                debug(this._namespace, level, descriptor, data);
+                if (develop) {
+                    debug(this._namespace, level, descriptor, data);
+                }
                 window.localStorage.setItem(LocalStorageLogger._database, JSON.stringify(logs));
             } catch (e) {
                 window.localStorage.removeItem(LocalStorageLogger._database);
@@ -918,238 +924,6 @@ var LocalStorageLogger = function (_LoggerInterface) {
         }
     }]);
     return LocalStorageLogger;
-}(Interface);
-
-/**
- * Websql protocol
- * @class WebsqlLogger
- */
-
-var WebsqlLogger = function (_LoggerInterface) {
-    inherits(WebsqlLogger, _LoggerInterface);
-
-    /**
-     * Websql logline constructor
-     * @constructor
-     * @param {String} namespace - namespace to use
-     */
-    function WebsqlLogger() {
-        var _ref;
-
-        classCallCheck(this, WebsqlLogger);
-
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-        }
-
-        return possibleConstructorReturn(this, (_ref = WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger)).call.apply(_ref, [this].concat(args)));
-    }
-
-    /**
-     * add a log record
-     * @method _reocrd
-     * @private
-     * @parma {String} level - log level
-     * @param {String} descriptor - to speed up search and improve understanding
-     * @param {Mixed} [data] - additional data
-     */
-
-
-    createClass(WebsqlLogger, [{
-        key: '_record',
-        value: function _record(level, descriptor, data) {
-            var _this2 = this;
-
-            if (WebsqlLogger.status !== Interface.STATUS.INITED) {
-                WebsqlLogger._pool.push(function () {
-                    return _this2._record(level, descriptor, data);
-                });
-                if (WebsqlLogger.status !== Interface.STATUS.INITING) {
-                    WebsqlLogger.init();
-                }
-                return;
-            }
-
-            try {
-                debug(this._namespace, level, descriptor, data);
-                WebsqlLogger._db.transaction(function (tx) {
-                    tx.executeSql('INSERT INTO logs (time, namespace, level, descriptor, data) VALUES(?, ?, ?, ? ,?)', [Date.now(), _this2._namespace, level, descriptor, data === undefined || data === '' ? '' : JSON.stringify(data) || ''], function () {/* empty func */}, function (tx, e) {
-                        throwError('write error, ' + e.message);
-                    });
-                });
-            } catch (e) {
-                throwError('error inserting record, ' + e.message);
-            }
-        }
-
-        /**
-         * initialize protocol
-         * @method init
-         * @static
-         * @param {String} database - database name to use
-         */
-
-    }], [{
-        key: 'init',
-        value: function init(database) {
-            var _this3 = this;
-
-            if (!WebsqlLogger.support) {
-                throwError(new Error('your platform does not support websql protocol.'));
-            }
-
-            if (WebsqlLogger.status) {
-                return false;
-            }
-
-            WebsqlLogger._pool = WebsqlLogger._pool || new Pool();
-            WebsqlLogger._database = database || 'logline';
-            WebsqlLogger.status = get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITING;
-
-            try {
-                WebsqlLogger._db = window.openDatabase(WebsqlLogger._database, '1.0', 'cats loves logs', 4.85 * 1024 * 1024);
-                WebsqlLogger._db.transaction(function (tx) {
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS logs (time, namespace, level, descriptor, data)', [], function () {
-                        WebsqlLogger.status = get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', _this3).INITED;
-                        WebsqlLogger._pool.consume();
-                    }, function (tx, e) {
-                        WebsqlLogger.status = get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', _this3).FAILED;
-                        throwError('unable to create table, ' + e.message);
-                    });
-                });
-            } catch (e) {
-                throwError('unable to init log database, ' + e.message);
-            }
-        }
-
-        /**
-         * get logs in range
-         * if from and end is not defined, will fetch full log
-         * @method get
-         * @static
-         * @param {String} from - time from, unix time stamp or falsy
-         * @param {String} to - time end, unix time stamp or falsy
-         * @param {Function} readyFn - function to call back with logs as parameter
-         */
-
-    }, {
-        key: 'get',
-        value: function get$$1(from, to, readyFn) {
-            if (WebsqlLogger.status !== get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
-                return WebsqlLogger._pool.push(function () {
-                    return WebsqlLogger.get(from, to, readyFn);
-                });
-            }
-
-            from = Interface.transTimeFormat(from);
-            to = Interface.transTimeFormat(to);
-
-            try {
-                WebsqlLogger._db.transaction(function (tx) {
-                    tx.executeSql('SELECT * FROM logs ORDER BY time DESC', [], function (tx, res) {
-                        var logs = [],
-                            line,
-                            index = res.rows.length,
-                            item;
-                        while (--index >= 0) {
-                            item = res.rows.item(index);
-                            if (from && item.time < from || to && item.time > to) {
-                                continue;
-                            }
-
-                            // in some devices, properties are configureable: false, writable: false
-                            // we need deep copy
-                            line = JSON.parse(JSON.stringify(item));
-                            // incase data is an object, not a string
-                            try {
-                                line.data = JSON.parse(line.data);
-                            } catch (e) {/* leave line.data as it be */}
-                            logs.push(line);
-                        }
-                        readyFn(logs);
-                    }, function (tx, e) {
-                        throwError(e.message);
-                    });
-                });
-            } catch (e) {
-                throwError('unable to collect logs from database.');
-            }
-        }
-
-        /**
-         * clean logs = keep limited logs
-         * @method keep
-         * @static
-         * @param {Number} daysToMaintain - keep logs within days
-         */
-
-    }, {
-        key: 'keep',
-        value: function keep(daysToMaintain) {
-            if (WebsqlLogger.status !== get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
-                return WebsqlLogger._pool.push(function () {
-                    return WebsqlLogger.keep(daysToMaintain);
-                });
-            }
-
-            try {
-                WebsqlLogger._db.transaction(function (tx) {
-                    if (daysToMaintain) {
-                        tx.executeSql('DELETE FROM logs WHERE time < ?', [Date.now() - (daysToMaintain || 2) * 24 * 3600 * 1000], function () {/* empty func */}, function (tx, e) {
-                            throwError(e.message);
-                        });
-                    } else {
-                        tx.executeSql('DELETE FROM logs', [], function () {/* empty func */}, function (tx, e) {
-                            throwError(e.message);
-                        });
-                    }
-                });
-            } catch (e) {
-                throwError('unable to clean logs from database.');
-            }
-        }
-
-        /**
-         * delete log database
-         * @method clean
-         * @static
-         */
-
-    }, {
-        key: 'clean',
-        value: function clean() {
-            if (WebsqlLogger.status !== get$1(WebsqlLogger.__proto__ || Object.getPrototypeOf(WebsqlLogger), 'STATUS', this).INITED) {
-                WebsqlLogger._pool.push(function () {
-                    return WebsqlLogger.clean();
-                });
-                return;
-            }
-
-            try {
-                WebsqlLogger._db.transaction(function (tx) {
-                    tx.executeSql('DROP TABLE logs', [], function () {
-                        delete WebsqlLogger.status;
-                    }, function (tx, e) {
-                        throwError(e.message);
-                    });
-                });
-            } catch (e) {
-                throwError('unable to clean log database.');
-            }
-        }
-
-        /**
-         * detect support situation
-         * @prop {Boolean} support
-         */
-
-    }, {
-        key: 'support',
-        get: function get$$1() {
-            return 'openDatabase' in window;
-        }
-    }]);
-    return WebsqlLogger;
 }(Interface);
 
 var Logline = function () {
@@ -1314,7 +1088,7 @@ var Logline = function () {
         key: 'using',
         value: function using(protocol, database) {
             // protocol unavailable is not allowed
-            if (-1 === [IndexedDBLogger, LocalStorageLogger, WebsqlLogger].indexOf(protocol)) {
+            if (-1 === [IndexedDBLogger, LocalStorageLogger].indexOf(protocol)) {
                 throwError('specialfied protocol ' + (protocol ? protocol + ' ' : '') + 'is not available');
             }
 
@@ -1354,8 +1128,7 @@ var Logline = function () {
 
 Logline.PROTOCOL = {
     INDEXEDDB: IndexedDBLogger,
-    LOCALSTORAGE: LocalStorageLogger,
-    WEBSQL: WebsqlLogger
+    LOCALSTORAGE: LocalStorageLogger
 };
 
 // export protocol interface for user custom implements

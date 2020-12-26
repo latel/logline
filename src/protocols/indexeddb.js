@@ -25,18 +25,20 @@ export default class IndexedDBLogger extends LoggerInterface {
      * @parma {String} level - log level
      * @param {String} descriptor - to speed up search and improve understanding
      * @param {Mixed} [data] - additional data
+     * @param {Boolean} [develop] - to tell develop environment from production
      */
-    _record(level, descriptor, data) {
+    _record(level, descriptor, data, develop) {
         try {
             if (IndexedDBLogger.status !== LoggerInterface.STATUS.INITED) {
-                IndexedDBLogger._pool.push(() => this._record(level, descriptor, data));
+                IndexedDBLogger._pool.push(() => this._record(level, descriptor, data, develop));
                 if (IndexedDBLogger.status !== LoggerInterface.STATUS.INITING) {
                     IndexedDBLogger.init();
                 }
                 return;
             }
-
-            util.debug(this._namespace, level, descriptor, data);
+            if (develop) {
+                util.debug(this._namespace, level, descriptor, data);
+            }
             let transaction = IndexedDBLogger.db.transaction(['logs'], READ_WRITE || 'readwrite');
             transaction.onerror = event => util.throwError(event.target.error);
 
