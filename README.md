@@ -1,6 +1,8 @@
 Logline
 =======
 
+~本项目的实现和结构已经过时，不建议使用~
+
 中文 | [English](https://github.com/latel/logline/blob/master/README.en_US.md)
 
 [![Build Status][travis-image]][travis-url]
