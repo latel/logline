@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 function test(protocol) {
 
     var values = Object.values || function(obj) {
@@ -24,7 +25,7 @@ function test(protocol) {
 
     Logline.using(Logline.PROTOCOL[protocol.toUpperCase()]);
 
-    document.querySelector('#add').addEventListener('click', function () {
+    document.querySelector('#add').addEventListener('click', function() {
         var form = document.forms.namedItem("form");
         if (!form.namespace.value) {
             alert('模块名不可为空');
@@ -38,11 +39,11 @@ function test(protocol) {
         log[form.level.value](form.descriptor.value, form.data.value);
     });
 
-    document.querySelector('#keep').addEventListener('click', function () {
+    document.querySelector('#keep').addEventListener('click', function() {
         Logline.keep(0);
     });
 
-    document.querySelector('#clean').addEventListener('click', function () {
+    document.querySelector('#clean').addEventListener('click', function() {
         Logline.clean();
         document.querySelector('article').innerHTML = '';
     });
@@ -51,9 +52,9 @@ function test(protocol) {
         ev.preventDefault();
     });
 
-    setInterval(function () {
+    setInterval(function() {
         if (Logline.PROTOCOL[protocol.toUpperCase()].status === 2) {
-            Logline.all(function (logs) {
+            Logline.all(function(logs) {
                 var html = '',
                     i;
                 for (i = 0; i < logs.length; i++) {
